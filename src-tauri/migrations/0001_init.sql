@@ -9,13 +9,17 @@
 --     With no backend yet everything stays 'dirty'; it is forward-looking.
 --   * Deadlines are stored as absolute UTC instants. The `timezone` column on
 --     editions records the zone the user entered (e.g. 'AoE') for display/edit.
+--
+-- Statements are idempotent (IF NOT EXISTS) so this schema can be applied by
+-- either the Tauri plugin's migrator or the headless node:sqlite service over
+-- the same file without conflicting.
 
 PRAGMA foreign_keys = ON;
 
 ------------------------------------------------------------------------------
 -- Venues: journals & conferences
 ------------------------------------------------------------------------------
-CREATE TABLE venues (
+CREATE TABLE IF NOT EXISTS venues (
   id          TEXT PRIMARY KEY,
   name        TEXT NOT NULL,
   short_name  TEXT,
@@ -33,7 +37,7 @@ CREATE TABLE venues (
 ------------------------------------------------------------------------------
 -- Venue editions: one call-for-papers cycle / year, carries the deadlines
 ------------------------------------------------------------------------------
-CREATE TABLE venue_editions (
+CREATE TABLE IF NOT EXISTS venue_editions (
   id                  TEXT PRIMARY KEY,
   venue_id            TEXT NOT NULL REFERENCES venues(id),
   year                INTEGER,
@@ -55,13 +59,13 @@ CREATE TABLE venue_editions (
   deleted_at          TEXT,
   sync_status         TEXT NOT NULL DEFAULT 'dirty'
 );
-CREATE INDEX idx_editions_venue ON venue_editions(venue_id);
-CREATE INDEX idx_editions_submission ON venue_editions(submission_deadline);
+CREATE INDEX IF NOT EXISTS idx_editions_venue ON venue_editions(venue_id);
+CREATE INDEX IF NOT EXISTS idx_editions_submission ON venue_editions(submission_deadline);
 
 ------------------------------------------------------------------------------
 -- Reviewing: manuscripts I reviewed + per-round records
 ------------------------------------------------------------------------------
-CREATE TABLE reviewed_manuscripts (
+CREATE TABLE IF NOT EXISTS reviewed_manuscripts (
   id            TEXT PRIMARY KEY,
   venue_id      TEXT REFERENCES venues(id),     -- optional link
   venue_name    TEXT,                            -- snapshot if no linked venue
@@ -76,7 +80,7 @@ CREATE TABLE reviewed_manuscripts (
   sync_status   TEXT NOT NULL DEFAULT 'dirty'
 );
 
-CREATE TABLE review_rounds (
+CREATE TABLE IF NOT EXISTS review_rounds (
   id             TEXT PRIMARY KEY,
   manuscript_id  TEXT NOT NULL REFERENCES reviewed_manuscripts(id),
   round          INTEGER NOT NULL DEFAULT 1,
@@ -92,12 +96,12 @@ CREATE TABLE review_rounds (
   deleted_at     TEXT,
   sync_status    TEXT NOT NULL DEFAULT 'dirty'
 );
-CREATE INDEX idx_rounds_manuscript ON review_rounds(manuscript_id);
+CREATE INDEX IF NOT EXISTS idx_rounds_manuscript ON review_rounds(manuscript_id);
 
 ------------------------------------------------------------------------------
 -- My papers + submission/revision rounds
 ------------------------------------------------------------------------------
-CREATE TABLE papers (
+CREATE TABLE IF NOT EXISTS papers (
   id              TEXT PRIMARY KEY,
   title           TEXT NOT NULL,
   target_venue_id TEXT REFERENCES venues(id),
@@ -117,7 +121,7 @@ CREATE TABLE papers (
   sync_status     TEXT NOT NULL DEFAULT 'dirty'
 );
 
-CREATE TABLE paper_submissions (
+CREATE TABLE IF NOT EXISTS paper_submissions (
   id                TEXT PRIMARY KEY,
   paper_id          TEXT NOT NULL REFERENCES papers(id),
   round             INTEGER NOT NULL DEFAULT 1,
@@ -132,12 +136,12 @@ CREATE TABLE paper_submissions (
   deleted_at        TEXT,
   sync_status       TEXT NOT NULL DEFAULT 'dirty'
 );
-CREATE INDEX idx_submissions_paper ON paper_submissions(paper_id);
+CREATE INDEX IF NOT EXISTS idx_submissions_paper ON paper_submissions(paper_id);
 
 ------------------------------------------------------------------------------
 -- Generic tasks: polymorphic, drive the dashboard reminders
 ------------------------------------------------------------------------------
-CREATE TABLE tasks (
+CREATE TABLE IF NOT EXISTS tasks (
   id          TEXT PRIMARY KEY,
   title       TEXT NOT NULL,
   linked_type TEXT,             -- 'paper'|'review'|'edition'|null
@@ -150,4 +154,4 @@ CREATE TABLE tasks (
   deleted_at  TEXT,
   sync_status TEXT NOT NULL DEFAULT 'dirty'
 );
-CREATE INDEX idx_tasks_due ON tasks(due_date);
+CREATE INDEX IF NOT EXISTS idx_tasks_due ON tasks(due_date);

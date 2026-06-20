@@ -1,13 +1,40 @@
 import { select } from "../client";
 import { insert, softDelete, update } from "../mutate";
-import type { ReviewedManuscript, ReviewRound, SyncFields } from "../types";
+import {
+  scopeWhere,
+  type ListScope,
+  type ReviewedManuscript,
+  type ReviewRound,
+  type SyncFields,
+} from "../types";
+import { nowIso } from "../../lib/dates";
 
 const LIVE = "deleted_at IS NULL";
 
-export async function listManuscripts(): Promise<ReviewedManuscript[]> {
+export async function listManuscripts(
+  scope: ListScope = "active",
+): Promise<ReviewedManuscript[]> {
   return select<ReviewedManuscript>(
-    `SELECT * FROM reviewed_manuscripts WHERE ${LIVE} ORDER BY updated_at DESC`,
+    `SELECT * FROM reviewed_manuscripts WHERE ${LIVE} ${scopeWhere(scope)} ORDER BY updated_at DESC`,
   );
+}
+
+export function archiveManuscript(id: string, archived: boolean): Promise<void> {
+  return update("reviewed_manuscripts", id, {
+    archived_at: archived ? nowIso() : null,
+  });
+}
+
+/** Earliest unsubmitted review-round due date per manuscript (for the list). */
+export async function reviewDueMap(): Promise<Record<string, string>> {
+  const rows = await select<{ manuscript_id: string; due: string }>(
+    `SELECT manuscript_id, MIN(due_date) AS due FROM review_rounds
+       WHERE deleted_at IS NULL AND submitted_date IS NULL AND due_date IS NOT NULL
+       GROUP BY manuscript_id`,
+  );
+  const map: Record<string, string> = {};
+  for (const r of rows) map[r.manuscript_id] = r.due;
+  return map;
 }
 
 export async function getManuscript(
@@ -20,7 +47,10 @@ export async function getManuscript(
   return rows[0] ?? null;
 }
 
-export type ManuscriptInput = Omit<ReviewedManuscript, keyof SyncFields>;
+export type ManuscriptInput = Omit<
+  ReviewedManuscript,
+  keyof SyncFields | "archived_at"
+>;
 
 export function createManuscript(data: ManuscriptInput): Promise<string> {
   return insert("reviewed_manuscripts", data);

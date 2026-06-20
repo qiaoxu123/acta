@@ -4,12 +4,26 @@ use tauri_plugin_sql::{Migration, MigrationKind};
 /// and versioned by the `tauri-plugin-sql` runtime before the webview loads.
 /// The canonical SQL lives in `migrations/` and is embedded at compile time.
 fn migrations() -> Vec<Migration> {
-    vec![Migration {
-        version: 1,
-        description: "initial schema: venues, editions, reviews, papers, tasks",
-        sql: include_str!("../migrations/0001_init.sql"),
-        kind: MigrationKind::Up,
-    }]
+    vec![
+        Migration {
+            version: 1,
+            description: "initial schema: venues, editions, reviews, papers, tasks",
+            sql: include_str!("../migrations/0001_init.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "archiving: archived_at on venues, manuscripts, papers",
+            sql: include_str!("../migrations/0002_archive.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "paper authorship role, patents, projects",
+            sql: include_str!("../migrations/0003_patents_projects.sql"),
+            kind: MigrationKind::Up,
+        },
+    ]
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

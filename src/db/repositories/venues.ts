@@ -1,15 +1,33 @@
 import { select } from "../client";
 import { insert, softDelete, update } from "../mutate";
-import type { Venue, VenueEdition } from "../types";
+import { scopeWhere, type ListScope, type Venue, type VenueEdition } from "../types";
+import { nowIso } from "../../lib/dates";
 
 const LIVE = "deleted_at IS NULL";
 
 // ---- Venues -----------------------------------------------------------------
 
-export async function listVenues(): Promise<Venue[]> {
+export async function listVenues(scope: ListScope = "active"): Promise<Venue[]> {
   return select<Venue>(
-    `SELECT * FROM venues WHERE ${LIVE} ORDER BY name COLLATE NOCASE`,
+    `SELECT * FROM venues WHERE ${LIVE} ${scopeWhere(scope)} ORDER BY name COLLATE NOCASE`,
   );
+}
+
+export function archiveVenue(id: string, archived: boolean): Promise<void> {
+  return update("venues", id, { archived_at: archived ? nowIso() : null });
+}
+
+/** Next upcoming submission deadline per venue (for the list's column). */
+export async function venueNextDeadlineMap(): Promise<Record<string, string>> {
+  const rows = await select<{ venue_id: string; due: string }>(
+    `SELECT venue_id, MIN(submission_deadline) AS due FROM venue_editions
+       WHERE deleted_at IS NULL AND submission_deadline >= $1
+       GROUP BY venue_id`,
+    [nowIso()],
+  );
+  const map: Record<string, string> = {};
+  for (const r of rows) map[r.venue_id] = r.due;
+  return map;
 }
 
 export async function getVenue(id: string): Promise<Venue | null> {

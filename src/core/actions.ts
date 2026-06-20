@@ -55,7 +55,7 @@ const toUtc = (v: string | undefined | null, tz: string) =>
 
 async function upsertVenue(input: Dict) {
   const { match = {}, venue, editions = [] } = input;
-  const all = await listVenues();
+  const all = await listVenues("all");
   const existing =
     (match.id && all.find((v) => v.id === match.id)) ||
     (match.short_name && all.find((v) => ci(v.short_name, match.short_name))) ||
@@ -115,7 +115,7 @@ async function upsertVenue(input: Dict) {
 
 async function upsertReview(input: Dict) {
   const { match = {}, manuscript, rounds = [] } = input;
-  const all = await listManuscripts();
+  const all = await listManuscripts("all");
   const existing =
     (match.id && all.find((m) => m.id === match.id)) ||
     (match.manuscript_id && all.find((m) => ci(m.manuscript_id, match.manuscript_id))) ||
@@ -169,7 +169,7 @@ async function upsertReview(input: Dict) {
 
 async function upsertPaper(input: Dict) {
   const { match = {}, paper, submissions = [] } = input;
-  const all = await listPapers();
+  const all = await listPapers("all");
   const existing =
     (match.id && all.find((p) => p.id === match.id)) ||
     (match.title && all.find((p) => ci(p.title, match.title))) ||
@@ -256,7 +256,7 @@ export async function applyAction(name: string, input: Dict = {}): Promise<any> 
       return { ok: true, items: await getAgenda() };
     case "find_venue": {
       const q = String(input.query ?? "").toLowerCase();
-      const items = (await listVenues()).filter((v) =>
+      const items = (await listVenues("all")).filter((v) =>
         [v.name, v.short_name, v.rank, v.publisher]
           .filter(Boolean)
           .some((s) => s!.toLowerCase().includes(q)),
@@ -264,9 +264,9 @@ export async function applyAction(name: string, input: Dict = {}): Promise<any> 
       return { ok: true, items };
     }
     case "list_papers":
-      return { ok: true, items: await listPapers() };
+      return { ok: true, items: await listPapers("all") };
     case "list_reviews":
-      return { ok: true, items: await listManuscripts() };
+      return { ok: true, items: await listManuscripts("all") };
     default:
       throw new Error(`No handler for action: ${name}`);
   }

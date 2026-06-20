@@ -5,7 +5,7 @@ export interface AgendaItem {
   id: string; // unique per (source row + field)
   date: string; // ISO UTC instant
   timezone: string; // display zone (editions carry their own; others UTC/local)
-  kind: "deadline" | "review" | "revision" | "event" | "task";
+  kind: "deadline" | "review" | "revision" | "event" | "task" | "project";
   label: string; // what this date is (e.g. "Submission deadline")
   title: string; // the venue/paper/manuscript title
   href: string; // in-app route to the source
@@ -14,6 +14,7 @@ export interface AgendaItem {
 interface EditionRow {
   id: string;
   venue_id: string;
+  kind: string;
   name: string;
   short_name: string | null;
   timezone: string;
@@ -46,7 +47,7 @@ interface TaskRow {
 export async function getAgenda(): Promise<AgendaItem[]> {
   const [editions, reviews, revisions, tasks] = await Promise.all([
     select<EditionRow>(
-      `SELECT e.id, e.venue_id, v.name, v.short_name, e.timezone,
+      `SELECT e.id, e.venue_id, v.kind, v.name, v.short_name, e.timezone,
               e.abstract_deadline, e.submission_deadline, e.rebuttal_end,
               e.notification_date, e.camera_ready, e.event_start
          FROM venue_editions e JOIN venues v ON v.id = e.venue_id
@@ -73,6 +74,7 @@ export async function getAgenda(): Promise<AgendaItem[]> {
 
   for (const e of editions) {
     const name = e.short_name || e.name;
+    const route = e.kind === "journal" ? "journals" : "conferences";
     const push = (date: string | null, label: string) => {
       if (date)
         items.push({
@@ -82,7 +84,7 @@ export async function getAgenda(): Promise<AgendaItem[]> {
           kind: label === "Conference" ? "event" : "deadline",
           label,
           title: name,
-          href: `/venues/${e.venue_id}`,
+          href: `/${route}/${e.venue_id}`,
         });
     };
     push(e.abstract_deadline, "Abstract deadline");
@@ -125,6 +127,32 @@ export async function getAgenda(): Promise<AgendaItem[]> {
       title: t.title,
       href: `/`,
     });
+
+  // Projects table only exists where migration v3 ran (the app); a headless
+  // service-only DB won't have it, so this is best-effort.
+  try {
+    const projects = await select<{
+      id: string;
+      name: string;
+      category: string;
+      date: string;
+    }>(
+      `SELECT id, name, category, apply_deadline AS date FROM projects
+         WHERE deleted_at IS NULL AND archived_at IS NULL AND apply_deadline IS NOT NULL`,
+    );
+    for (const p of projects)
+      items.push({
+        id: p.id,
+        date: p.date,
+        timezone: "local",
+        kind: "project",
+        label: "Project deadline",
+        title: p.name,
+        href: `/projects/${p.category}/${p.id}`,
+      });
+  } catch {
+    /* projects table absent on service-only DBs */
+  }
 
   return items.sort((a, b) => a.date.localeCompare(b.date));
 }

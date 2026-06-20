@@ -9,6 +9,17 @@ export interface SyncFields {
   sync_status: string;
 }
 
+/** Archive scope for list queries. */
+export type ListScope = "active" | "archived" | "all";
+
+/** SQL fragment selecting rows by archive scope (assumes an `archived_at`
+ *  column). Combine with the live (`deleted_at IS NULL`) filter. */
+export function scopeWhere(scope: ListScope): string {
+  if (scope === "archived") return "AND archived_at IS NOT NULL";
+  if (scope === "all") return "";
+  return "AND archived_at IS NULL";
+}
+
 export type VenueKind = "journal" | "conference";
 
 export interface Venue extends SyncFields {
@@ -19,6 +30,7 @@ export interface Venue extends SyncFields {
   publisher: string | null;
   url: string | null;
   notes: string | null;
+  archived_at: string | null;
 }
 
 export interface VenueEdition extends SyncFields {
@@ -56,6 +68,7 @@ export interface ReviewedManuscript extends SyncFields {
   role: ReviewerRole;
   status: ManuscriptStatus;
   notes: string | null;
+  archived_at: string | null;
 }
 
 export type Recommendation = "accept" | "minor" | "major" | "reject";
@@ -85,17 +98,69 @@ export type PaperStatus =
   | "camera_ready"
   | "published";
 
+/** The user's own role on a paper — drives sidebar classification & stats. */
+export type PaperRole = "first" | "corresponding" | "advised" | "coauthor";
+
 export interface Paper extends SyncFields {
   title: string;
   target_venue_id: string | null;
   target_venue: string | null;
   status: PaperStatus;
+  my_role: PaperRole | null;
   authors: string | null; // JSON array
   abstract: string | null;
   overleaf_url: string | null;
   repo_url: string | null;
   started_date: string | null;
   notes: string | null;
+  archived_at: string | null;
+}
+
+export type PatentType = "invention" | "utility" | "design";
+export type PatentStatus =
+  | "drafting"
+  | "filed"
+  | "substantive"
+  | "granted"
+  | "rejected";
+
+export interface Patent extends SyncFields {
+  title: string;
+  type: PatentType;
+  app_number: string | null;
+  app_date: string | null;
+  pub_number: string | null;
+  grant_number: string | null;
+  status: PatentStatus;
+  inventors: string | null;
+  my_role: string | null; // first | co
+  notes: string | null;
+  archived_at: string | null;
+}
+
+export type ProjectCategory = "vertical" | "horizontal";
+export type ProjectStatus =
+  | "planning"
+  | "applying"
+  | "active"
+  | "completed"
+  | "rejected";
+
+export interface Project extends SyncFields {
+  name: string;
+  category: ProjectCategory;
+  level: string | null; // national|provincial|ministerial|horizontal|other
+  program: string | null;
+  agency: string | null;
+  number: string | null;
+  pi_role: string | null; // lead | participant
+  amount: string | null;
+  status: ProjectStatus;
+  apply_deadline: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  notes: string | null;
+  archived_at: string | null;
 }
 
 export type Decision =
@@ -134,6 +199,8 @@ export const ALL_TABLES = [
   "review_rounds",
   "papers",
   "paper_submissions",
+  "patents",
+  "projects",
   "tasks",
 ] as const;
 export type TableName = (typeof ALL_TABLES)[number];
