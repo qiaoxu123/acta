@@ -7,6 +7,7 @@ import {
   type ManuscriptInput,
 } from "@/db/repositories/reviews";
 import type { ManuscriptStatus, ReviewedManuscript, ReviewerRole } from "@/db/types";
+import { useI18n } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
 
 const ROLES: ReviewerRole[] = ["reviewer", "meta", "pc"];
@@ -43,6 +44,7 @@ export function ManuscriptForm({
   onSaved?: (id: string) => void;
 }) {
   const bump = useRefresh((s) => s.bump);
+  const { t } = useI18n();
   const [form, setForm] = useState<ManuscriptInput>(empty());
   const [seedKey, setSeedKey] = useState<string | null>(null);
   const key = existing?.id ?? "new";
@@ -82,19 +84,19 @@ export function ManuscriptForm({
   return (
     <Modal
       open={open}
-      title={existing ? "Edit manuscript" : "New manuscript to review"}
+      title={existing ? t("mform.edit") : t("mform.new")}
       onClose={onClose}
       footer={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t("common.cancel")}</Button>
           <Button variant="primary" onClick={save}>
-            Save
+            {t("common.save")}
           </Button>
         </>
       }
     >
       <div className="space-y-3">
-        <Field label="Manuscript title">
+        <Field label={t("mform.title")}>
           <TextInput
             autoFocus
             value={form.title}
@@ -102,14 +104,14 @@ export function ManuscriptForm({
           />
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Venue">
+          <Field label={t("mform.venue")}>
             <TextInput
               value={form.venue_name ?? ""}
               placeholder="TWC / NeurIPS 2026"
               onChange={(e) => set("venue_name", e.target.value)}
             />
           </Field>
-          <Field label="Manuscript ID">
+          <Field label={t("mform.msid")}>
             <TextInput
               value={form.manuscript_id ?? ""}
               placeholder="TWC-2026-1234"
@@ -118,29 +120,29 @@ export function ManuscriptForm({
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Role">
+          <Field label={t("mform.role")}>
             <Select value={form.role} onChange={(e) => set("role", e.target.value as ReviewerRole)}>
               {ROLES.map((r) => (
                 <option key={r} value={r}>
-                  {r}
+                  {t(`role.${r}`)}
                 </option>
               ))}
             </Select>
           </Field>
-          <Field label="Status">
+          <Field label={t("mform.status")}>
             <Select
               value={form.status}
               onChange={(e) => set("status", e.target.value as ManuscriptStatus)}
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {s.replace("_", " ")}
+                  {t(`mstatus.${s}`)}
                 </option>
               ))}
             </Select>
           </Field>
         </div>
-        <Field label="Notes">
+        <Field label={t("common.notes")}>
           <Textarea rows={3} value={form.notes ?? ""} onChange={(e) => set("notes", e.target.value)} />
         </Field>
       </div>

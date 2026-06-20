@@ -12,6 +12,7 @@ import {
   localInputToUtcIso,
   utcIsoToLocalInput,
 } from "@/lib/dates";
+import { useI18n } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
 
 /** Form state mirrors the inputs: deadline fields hold datetime-local wall-clock
@@ -93,6 +94,7 @@ export function EditionForm({
   onClose: () => void;
 }) {
   const bump = useRefresh((s) => s.bump);
+  const { t } = useI18n();
   const [form, setForm] = useState<FormState>(emptyState());
 
   const [seedKey, setSeedKey] = useState<string | null>(null);
@@ -145,34 +147,34 @@ export function EditionForm({
     <Modal
       open={open}
       wide
-      title={existing ? "Edit edition / call" : "New edition / call"}
+      title={existing ? t("eform.edit") : t("eform.new")}
       onClose={onClose}
       footer={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t("common.cancel")}</Button>
           <Button variant="primary" onClick={save}>
-            Save
+            {t("common.save")}
           </Button>
         </>
       }
     >
       <div className="space-y-3">
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Year">
+          <Field label={t("eform.year")}>
             <TextInput
               type="number"
               value={form.year}
               onChange={(e) => set("year", e.target.value)}
             />
           </Field>
-          <Field label="Cycle label">
+          <Field label={t("eform.cycle")}>
             <TextInput
               value={form.cycle_label}
               placeholder="2026 / Spring"
               onChange={(e) => set("cycle_label", e.target.value)}
             />
           </Field>
-          <Field label="Deadline timezone">
+          <Field label={t("eform.tz")}>
             <Select
               value={form.timezone}
               onChange={(e) => set("timezone", e.target.value)}
@@ -188,34 +190,34 @@ export function EditionForm({
 
         <div className="rounded-md border border-border bg-surface-sunken p-3">
           <p className="mb-2 text-2xs font-semibold uppercase tracking-wide text-content-subtle">
-            Deadlines (entered in {form.timezone})
+            {t("eform.deadlines", { tz: form.timezone })}
           </p>
           <div className="grid grid-cols-2 gap-3">
-            {dtField("abstract_deadline", "Abstract")}
-            {dtField("submission_deadline", "Full paper")}
-            {dtField("rebuttal_start", "Rebuttal start")}
-            {dtField("rebuttal_end", "Rebuttal end")}
-            {dtField("notification_date", "Notification")}
-            {dtField("camera_ready", "Camera-ready")}
+            {dtField("abstract_deadline", t("dl.abstract"))}
+            {dtField("submission_deadline", t("dl.fullpaper"))}
+            {dtField("rebuttal_start", t("dl.rebuttalStart"))}
+            {dtField("rebuttal_end", t("dl.rebuttalEnd"))}
+            {dtField("notification_date", t("dl.notification"))}
+            {dtField("camera_ready", t("dl.camera"))}
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Event start">
+          <Field label={t("eform.eventStart")}>
             <TextInput
               type="date"
               value={form.event_start}
               onChange={(e) => set("event_start", e.target.value)}
             />
           </Field>
-          <Field label="Event end">
+          <Field label={t("eform.eventEnd")}>
             <TextInput
               type="date"
               value={form.event_end}
               onChange={(e) => set("event_end", e.target.value)}
             />
           </Field>
-          <Field label="Location">
+          <Field label={t("eform.location")}>
             <TextInput
               value={form.location}
               placeholder="San Diego, USA"
@@ -224,14 +226,14 @@ export function EditionForm({
           </Field>
         </div>
 
-        <Field label="Call for papers URL">
+        <Field label={t("eform.cfpUrl")}>
           <TextInput
             value={form.url}
             placeholder="https://…"
             onChange={(e) => set("url", e.target.value)}
           />
         </Field>
-        <Field label="Notes">
+        <Field label={t("common.notes")}>
           <Textarea
             rows={2}
             value={form.notes}

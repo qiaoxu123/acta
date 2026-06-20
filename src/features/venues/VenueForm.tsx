@@ -7,6 +7,7 @@ import {
   type VenueInput,
 } from "@/db/repositories/venues";
 import type { Venue } from "@/db/types";
+import { useI18n } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
 
 const EMPTY: VenueInput = {
@@ -22,15 +23,18 @@ const EMPTY: VenueInput = {
 export function VenueForm({
   open,
   existing,
+  defaultKind,
   onClose,
   onSaved,
 }: {
   open: boolean;
   existing?: Venue | null;
+  defaultKind?: "journal" | "conference";
   onClose: () => void;
   onSaved?: (id: string) => void;
 }) {
   const bump = useRefresh((s) => s.bump);
+  const { t } = useI18n();
   const [form, setForm] = useState<VenueInput>(EMPTY);
 
   // Re-seed the form whenever the modal opens for a (different) record.
@@ -49,7 +53,7 @@ export function VenueForm({
             url: existing.url ?? "",
             notes: existing.notes ?? "",
           }
-        : EMPTY,
+        : { ...EMPTY, kind: defaultKind ?? EMPTY.kind },
     );
   }
   if (!open && seedKey !== null) setSeedKey(null);
@@ -74,19 +78,19 @@ export function VenueForm({
   return (
     <Modal
       open={open}
-      title={existing ? "Edit venue" : "New venue"}
+      title={existing ? t("vform.edit") : t("vform.new")}
       onClose={onClose}
       footer={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t("common.cancel")}</Button>
           <Button variant="primary" onClick={save}>
-            Save
+            {t("common.save")}
           </Button>
         </>
       }
     >
       <div className="space-y-3">
-        <Field label="Name">
+        <Field label={t("vform.name")}>
           <TextInput
             autoFocus
             value={form.name}
@@ -95,32 +99,32 @@ export function VenueForm({
           />
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Short name">
+          <Field label={t("vform.short")}>
             <TextInput
               value={form.short_name ?? ""}
               placeholder="TWC / NeurIPS"
               onChange={(e) => set("short_name", e.target.value)}
             />
           </Field>
-          <Field label="Type">
+          <Field label={t("vform.type")}>
             <Select
               value={form.kind}
               onChange={(e) => set("kind", e.target.value as VenueInput["kind"])}
             >
-              <option value="conference">Conference</option>
-              <option value="journal">Journal</option>
+              <option value="conference">{t("kind.conference")}</option>
+              <option value="journal">{t("kind.journal")}</option>
             </Select>
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Rank / tier">
+          <Field label={t("vform.rank")}>
             <TextInput
               value={form.rank ?? ""}
               placeholder="CCF-A / JCR Q1 / 中科院一区"
               onChange={(e) => set("rank", e.target.value)}
             />
           </Field>
-          <Field label="Publisher">
+          <Field label={t("vform.publisher")}>
             <TextInput
               value={form.publisher ?? ""}
               placeholder="IEEE / ACM / Springer"
@@ -128,14 +132,14 @@ export function VenueForm({
             />
           </Field>
         </div>
-        <Field label="Website">
+        <Field label={t("vform.website")}>
           <TextInput
             value={form.url ?? ""}
             placeholder="https://…"
             onChange={(e) => set("url", e.target.value)}
           />
         </Field>
-        <Field label="Notes">
+        <Field label={t("common.notes")}>
           <Textarea
             rows={3}
             value={form.notes ?? ""}

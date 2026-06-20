@@ -7,8 +7,9 @@ import {
   type PaperInput,
 } from "@/db/repositories/papers";
 import type { Paper, PaperStatus } from "@/db/types";
+import { useI18n } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
-import { PAPER_STATUSES, STATUS_LABEL } from "./paperStatus";
+import { PAPER_STATUSES } from "./paperStatus";
 
 function empty(): PaperInput {
   return {
@@ -16,6 +17,7 @@ function empty(): PaperInput {
     target_venue_id: null,
     target_venue: "",
     status: "idea",
+    my_role: null,
     authors: "",
     abstract: "",
     overleaf_url: "",
@@ -37,6 +39,7 @@ export function PaperForm({
   onSaved?: (id: string) => void;
 }) {
   const bump = useRefresh((s) => s.bump);
+  const { t } = useI18n();
   const [form, setForm] = useState<PaperInput>(empty());
   const [seedKey, setSeedKey] = useState<string | null>(null);
   const key = existing?.id ?? "new";
@@ -49,6 +52,7 @@ export function PaperForm({
             target_venue_id: existing.target_venue_id,
             target_venue: existing.target_venue ?? "",
             status: existing.status,
+            my_role: existing.my_role,
             authors: existing.authors ?? "",
             abstract: existing.abstract ?? "",
             overleaf_url: existing.overleaf_url ?? "",
@@ -80,46 +84,63 @@ export function PaperForm({
     <Modal
       open={open}
       wide
-      title={existing ? "Edit paper" : "New paper"}
+      title={existing ? t("pform.edit") : t("pform.new")}
       onClose={onClose}
       footer={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t("common.cancel")}</Button>
           <Button variant="primary" onClick={save}>
-            Save
+            {t("common.save")}
           </Button>
         </>
       }
     >
       <div className="space-y-3">
-        <Field label="Title">
+        <Field label={t("pform.title")}>
           <TextInput
             autoFocus
             value={form.title}
             onChange={(e) => set("title", e.target.value)}
           />
         </Field>
-        <div className="grid grid-cols-3 gap-3">
-          <Field label="Status">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={t("pform.status")}>
             <Select
               value={form.status}
               onChange={(e) => set("status", e.target.value as PaperStatus)}
             >
               {PAPER_STATUSES.map((s) => (
                 <option key={s} value={s}>
-                  {STATUS_LABEL[s]}
+                  {t(`pstatus.${s}`)}
                 </option>
               ))}
             </Select>
           </Field>
-          <Field label="Target venue">
+          <Field label={t("pform.myRole")}>
+            <Select
+              value={form.my_role ?? ""}
+              onChange={(e) =>
+                set("my_role", (e.target.value || null) as PaperInput["my_role"])
+              }
+            >
+              <option value="">{t("prole.unset")}</option>
+              {(["first", "corresponding", "advised", "coauthor"] as const).map((r) => (
+                <option key={r} value={r}>
+                  {t(`prole.${r}`)}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={t("pform.target")}>
             <TextInput
               value={form.target_venue ?? ""}
               placeholder="TWC / NeurIPS"
               onChange={(e) => set("target_venue", e.target.value)}
             />
           </Field>
-          <Field label="Started">
+          <Field label={t("pform.started")}>
             <TextInput
               type="date"
               value={form.started_date ?? ""}
@@ -127,7 +148,7 @@ export function PaperForm({
             />
           </Field>
         </div>
-        <Field label="Authors" hint="Comma-separated">
+        <Field label={t("pform.authors")} hint={t("pform.authorsHint")}>
           <TextInput
             value={form.authors ?? ""}
             placeholder="X. Qiao, …"
@@ -135,27 +156,27 @@ export function PaperForm({
           />
         </Field>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Overleaf / draft URL">
+          <Field label={t("pform.overleaf")}>
             <TextInput
               value={form.overleaf_url ?? ""}
               onChange={(e) => set("overleaf_url", e.target.value)}
             />
           </Field>
-          <Field label="Code repo URL">
+          <Field label={t("pform.repo")}>
             <TextInput
               value={form.repo_url ?? ""}
               onChange={(e) => set("repo_url", e.target.value)}
             />
           </Field>
         </div>
-        <Field label="Abstract">
+        <Field label={t("pform.abstract")}>
           <Textarea
             rows={3}
             value={form.abstract ?? ""}
             onChange={(e) => set("abstract", e.target.value)}
           />
         </Field>
-        <Field label="Notes">
+        <Field label={t("common.notes")}>
           <Textarea
             rows={2}
             value={form.notes ?? ""}

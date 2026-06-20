@@ -4,6 +4,7 @@ import {
   CalendarClock,
   CalendarX2,
   FileText,
+  Landmark,
   Library,
   CheckSquare,
   Presentation,
@@ -12,6 +13,7 @@ import { Toolbar } from "@/components/layout/Toolbar";
 import { CountdownBadge, EmptyState } from "@/components/ui/misc";
 import { getAgenda, type AgendaItem } from "@/db/repositories/dashboard";
 import { formatDeadline } from "@/lib/dates";
+import { useI18n, type TFn } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
 
 const KIND_ICON = {
@@ -20,10 +22,12 @@ const KIND_ICON = {
   review: Library,
   revision: FileText,
   task: CheckSquare,
+  project: Landmark,
 } as const;
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const tick = useRefresh((s) => s.tick);
   const [items, setItems] = useState<AgendaItem[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -41,22 +45,19 @@ export function DashboardPage() {
 
   return (
     <>
-      <Toolbar
-        title="Dashboard"
-        subtitle="Everything with a date, in one timeline"
-      />
+      <Toolbar title={t("dash.title")} subtitle={t("dash.subtitle")} />
       <div className="flex-1 overflow-y-auto px-5 py-4">
         {loaded && items.length === 0 ? (
           <EmptyState
             icon={<CalendarX2 size={28} />}
-            title="No deadlines yet"
-            hint="Add a venue with a call-for-papers, log a review, or track a paper revision — dated items show up here with live countdowns."
+            title={t("dash.empty.title")}
+            hint={t("dash.empty.hint")}
           />
         ) : (
           <div className="mx-auto max-w-3xl space-y-6">
-            <Section title="Upcoming" items={upcoming} onOpen={navigate} />
+            <Section title={t("dash.upcoming")} items={upcoming} onOpen={navigate} t={t} />
             {past.length > 0 && (
-              <Section title="Past" items={past} onOpen={navigate} muted />
+              <Section title={t("dash.past")} items={past} onOpen={navigate} t={t} muted />
             )}
           </div>
         )}
@@ -69,11 +70,13 @@ function Section({
   title,
   items,
   onOpen,
+  t,
   muted,
 }: {
   title: string;
   items: AgendaItem[];
   onOpen: (href: string) => void;
+  t: TFn;
   muted?: boolean;
 }) {
   if (items.length === 0) return null;
@@ -100,7 +103,7 @@ function Section({
                   {item.title}
                 </p>
                 <p className="truncate text-2xs text-content-subtle">
-                  {item.label} · {formatDeadline(item.date, item.timezone)}
+                  {t(`agenda.${item.label}`)} · {formatDeadline(item.date, item.timezone)}
                 </p>
               </div>
               <CountdownBadge iso={item.date} />

@@ -8,6 +8,7 @@ import {
 } from "@/db/repositories/reviews";
 import type { Recommendation, ReviewRound } from "@/db/types";
 import { localInputToUtcIso, utcIsoToLocalInput } from "@/lib/dates";
+import { useI18n } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
 
 const RECS: Recommendation[] = ["accept", "minor", "major", "reject"];
@@ -36,6 +37,7 @@ export function RoundForm({
   onClose: () => void;
 }) {
   const bump = useRefresh((s) => s.bump);
+  const { t } = useI18n();
   const empty = (): FormState => ({
     round: String(nextRound),
     due_date: "",
@@ -92,27 +94,27 @@ export function RoundForm({
     <Modal
       open={open}
       wide
-      title={existing ? `Edit round ${existing.round}` : "New review round"}
+      title={existing ? t("roundform.edit", { n: existing.round }) : t("roundform.new")}
       onClose={onClose}
       footer={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t("common.cancel")}</Button>
           <Button variant="primary" onClick={save}>
-            Save
+            {t("common.save")}
           </Button>
         </>
       }
     >
       <div className="space-y-3">
         <div className="grid grid-cols-4 gap-3">
-          <Field label="Round">
+          <Field label={t("roundform.round")}>
             <TextInput
               type="number"
               value={form.round}
               onChange={(e) => set("round", e.target.value)}
             />
           </Field>
-          <Field label="Recommendation">
+          <Field label={t("roundform.rec")}>
             <Select
               value={form.recommendation}
               onChange={(e) => set("recommendation", e.target.value)}
@@ -120,12 +122,12 @@ export function RoundForm({
               <option value="">—</option>
               {RECS.map((r) => (
                 <option key={r} value={r}>
-                  {r}
+                  {t(`rec.${r}`)}
                 </option>
               ))}
             </Select>
           </Field>
-          <Field label="Confidence (1-5)">
+          <Field label={t("roundform.conf")}>
             <TextInput
               type="number"
               min={1}
@@ -137,14 +139,14 @@ export function RoundForm({
           <div />
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Due date">
+          <Field label={t("roundform.due")}>
             <TextInput
               type="datetime-local"
               value={form.due_date}
               onChange={(e) => set("due_date", e.target.value)}
             />
           </Field>
-          <Field label="Submitted date">
+          <Field label={t("roundform.submitted")}>
             <TextInput
               type="datetime-local"
               value={form.submitted_date}
@@ -152,7 +154,7 @@ export function RoundForm({
             />
           </Field>
         </div>
-        <Field label="My review (the comments I gave)" hint="Markdown supported">
+        <Field label={t("roundform.comments")} hint={t("roundform.commentsHint")}>
           <Textarea
             rows={7}
             value={form.comments}
@@ -160,7 +162,7 @@ export function RoundForm({
             onChange={(e) => set("comments", e.target.value)}
           />
         </Field>
-        <Field label="Private notes">
+        <Field label={t("roundform.private")}>
           <Textarea
             rows={2}
             value={form.private_notes}

@@ -8,6 +8,7 @@ import {
 } from "@/db/repositories/papers";
 import type { Decision, PaperSubmission } from "@/db/types";
 import { localInputToUtcIso, utcIsoToLocalInput } from "@/lib/dates";
+import { useI18n } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
 
 const DECISIONS: Decision[] = [
@@ -45,6 +46,7 @@ export function SubmissionForm({
   onClose: () => void;
 }) {
   const bump = useRefresh((s) => s.bump);
+  const { t } = useI18n();
   const empty = (): FormState => ({
     round: String(nextRound),
     venue_name: defaultVenue,
@@ -99,58 +101,58 @@ export function SubmissionForm({
     <Modal
       open={open}
       wide
-      title={existing ? `Edit round ${existing.round}` : "New submission / revision round"}
+      title={existing ? t("sform.edit", { n: existing.round }) : t("sform.new")}
       onClose={onClose}
       footer={
         <>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t("common.cancel")}</Button>
           <Button variant="primary" onClick={save}>
-            Save
+            {t("common.save")}
           </Button>
         </>
       }
     >
       <div className="space-y-3">
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Round">
+          <Field label={t("sform.round")}>
             <TextInput
               type="number"
               value={form.round}
               onChange={(e) => set("round", e.target.value)}
             />
           </Field>
-          <Field label="Venue">
+          <Field label={t("sform.venue")}>
             <TextInput
               value={form.venue_name}
               onChange={(e) => set("venue_name", e.target.value)}
             />
           </Field>
-          <Field label="Decision">
+          <Field label={t("sform.decision")}>
             <Select value={form.decision} onChange={(e) => set("decision", e.target.value)}>
               {DECISIONS.map((d) => (
                 <option key={d} value={d}>
-                  {d.replace("_", " ")}
+                  {t(`dec.${d}`)}
                 </option>
               ))}
             </Select>
           </Field>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Submitted">
+          <Field label={t("sform.submitted")}>
             <TextInput
               type="date"
               value={form.submitted_date}
               onChange={(e) => set("submitted_date", e.target.value)}
             />
           </Field>
-          <Field label="Decision date">
+          <Field label={t("sform.decisionDate")}>
             <TextInput
               type="date"
               value={form.decision_date}
               onChange={(e) => set("decision_date", e.target.value)}
             />
           </Field>
-          <Field label="Revision deadline">
+          <Field label={t("sform.revisionDeadline")}>
             <TextInput
               type="datetime-local"
               value={form.revision_deadline}
@@ -158,7 +160,7 @@ export function SubmissionForm({
             />
           </Field>
         </div>
-        <Field label="Reviewer comments summary" hint="What they asked you to change">
+        <Field label={t("sform.summary")} hint={t("sform.summaryHint")}>
           <Textarea
             rows={6}
             value={form.reviewer_summary}
