@@ -51,6 +51,15 @@ npm run tauri build    # produce a native installer for the current OS
 CI builds macOS and Windows artifacts on every push — see
 [`.github/workflows/build.yml`](.github/workflows/build.yml).
 
+## Automation API (AI-callable)
+
+Acta reserves a clean interface so external automation can read/update the same
+local database — e.g. an **email worker** that auto-files deadlines and decisions,
+or an AI agent (小龙虾 / Claude). One action layer is exposed over a **local HTTP
+API** (`npm run server`) and an **MCP server** (`npm run mcp`), with a Claude-
+backed `/ingest` that turns raw emails into structured records. See
+[`docs/ai-api.md`](docs/ai-api.md).
+
 ## Data & backups
 
 Everything is stored in a local SQLite database (`acta.db` in the app data dir).

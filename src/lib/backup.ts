@@ -1,6 +1,6 @@
-import { select } from "@/db/client";
-import { insertRaw, truncate } from "@/db/mutate";
-import { ALL_TABLES } from "@/db/types";
+import { select } from "../db/client";
+import { insertRaw, truncate } from "../db/mutate";
+import { ALL_TABLES } from "../db/types";
 
 export interface Backup {
   app: "acta";

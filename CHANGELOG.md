@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.2.0] - 2026-06-20
+
+Reserve an AI-callable automation interface (no UI change).
+
+### Features
+
+- **Action layer** (`src/core/`): a transport-agnostic catalog of named actions
+  with JSON Schemas (`upsert_venue/review/paper`, `add_task`, and read actions),
+  dispatched through one `applyAction()` entry point. Upserts merge on natural
+  keys (id → short_name/manuscript_id → title) so repeated emails don't dup.
+- **Local HTTP API** (`server/`, `npm run server`): loopback JSON service over
+  the action layer — `/health`, `/actions` (discovery), `/actions/:name`,
+  `/ingest`, `/agenda`. Optional bearer-token auth. Backed by Node's built-in
+  `node:sqlite` against the **same** app database (WAL).
+- **AI ingest** (`src/ai/`): `POST /ingest { text }` runs Claude (Anthropic
+  tool-use) to turn an email/note into actions and apply them; `apply:false`
+  previews. Provider is behind an `AiProvider` interface (swappable).
+- **MCP server** (`mcp/`, `npm run mcp`): exposes the same catalog + an
+  `ingest_text` tool to MCP clients (小龙虾 / Claude Desktop / Claude Code),
+  forwarding to the HTTP API.
+- Docs: `docs/ai-api.md`, `.env.example`.
+
+### Design Rationale
+
+- **One contract, two transports**: HTTP for any language/worker, MCP for AI
+  agents — both call the identical action layer the in-app UI can also use, so
+  there is a single source of truth for behavior and the database.
+- **Pluggable SQL driver** (`src/db/client.ts` `setDriver()`): the same
+  repositories run under tauri-plugin-sql (app) or `node:sqlite` (service); the
+  default Tauri driver is lazy-loaded so the modules import cleanly in Node.
+
+### Notes & Caveats
+
+- App + service share the SQLite file via WAL; retry on rare `database is locked`.
+- `ACTA_DB_PATH` auto-resolution is best-effort per-OS — set it explicitly.
+
 ## [0.1.0] - 2026-06-20
 
 Initial scaffold and first working milestone.

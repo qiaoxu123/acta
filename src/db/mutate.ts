@@ -1,6 +1,6 @@
-import { execute, getDb } from "./client";
-import { newId } from "@/lib/ids";
-import { nowIso } from "@/lib/dates";
+import { execute } from "./client";
+import { newId } from "../lib/ids";
+import { nowIso } from "../lib/dates";
 
 /**
  * The single write gateway for the whole app. Every create/update/delete goes
@@ -75,11 +75,10 @@ export async function truncate(table: string): Promise<void> {
 /** Bulk insert pre-shaped rows verbatim (used by JSON import). Values only. */
 export async function insertRaw(table: string, rows: Row[]): Promise<void> {
   if (rows.length === 0) return;
-  const db = await getDb();
   for (const row of rows) {
     const cols = Object.keys(row);
     const placeholders = cols.map((_, i) => `$${i + 1}`).join(", ");
-    await db.execute(
+    await execute(
       `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${placeholders})`,
       cols.map((c) => row[c]),
     );
