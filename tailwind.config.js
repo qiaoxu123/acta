@@ -11,6 +11,7 @@ export default {
           sunken: "var(--surface-sunken)",
           raised: "var(--surface-raised)",
         },
+        panel: "var(--panel)",
         border: "var(--border)",
         content: {
           DEFAULT: "var(--content)",
