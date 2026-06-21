@@ -33,3 +33,6 @@ pnpm-debug.log*
 .env
 .env.local
 .env.*.local
+
+# Local agent state (plans, agent-memory)
+.claude/

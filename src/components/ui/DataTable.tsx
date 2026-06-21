@@ -36,6 +36,7 @@ export function DataTable<T>({
   onSort: (key: string) => void;
   getId: (item: T) => string;
   selectedId?: string;
+  /** Row click handler — opens the row (in a tab). */
   onSelect: (id: string) => void;
   collapsed: Set<string>;
   onToggle: (key: string) => void;

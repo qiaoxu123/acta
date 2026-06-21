@@ -77,3 +77,21 @@ export const cmpDue = (a?: string | null, b?: string | null) => {
   if (!b) return -1;
   return a.localeCompare(b);
 };
+
+/**
+ * Deadline ordering by urgency: soonest *upcoming* first, then items with no
+ * date, then *expired* ones at the very back (most-recently-expired first).
+ */
+export function cmpDueSoon(
+  a?: string | null,
+  b?: string | null,
+  now: string = new Date().toISOString(),
+): number {
+  const cat = (d?: string | null) => (!d ? 1 : d >= now ? 0 : 2);
+  const ca = cat(a),
+    cb = cat(b);
+  if (ca !== cb) return ca - cb;
+  if (ca === 0) return (a as string).localeCompare(b as string); // upcoming: soonest first
+  if (ca === 2) return (b as string).localeCompare(a as string); // expired: recent first
+  return 0;
+}

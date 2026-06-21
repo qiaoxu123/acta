@@ -64,6 +64,12 @@ const en: Dict = {
   "dash.subtitle": "Everything with a date, in one timeline",
   "dash.upcoming": "Upcoming",
   "dash.past": "Past",
+  "dash.filter.all": "All",
+  "dash.filter.venue": "Venues",
+  "dash.filter.review": "Reviews",
+  "dash.filter.paper": "Papers",
+  "dash.filter.project": "Projects",
+  "dash.filter.task": "Tasks",
   "dash.empty.title": "No deadlines yet",
   "dash.empty.hint":
     "Add a venue with a call-for-papers, log a review, or track a paper revision — dated items show up here with live countdowns.",
@@ -214,7 +220,7 @@ const en: Dict = {
   "set.about": "About Acta",
   "set.aboutDesc":
     "A local-first academic workflow tracker: journal & conference deadlines, peer-review records, and your own paper progress.",
-  "set.version": "Version 0.5.0",
+  "set.version": "Version 0.6.0",
   "set.confirmImport":
     "Importing will REPLACE all current data with the backup's contents. Continue?",
   "set.exported": "Exported {n} records to {path}",
@@ -352,6 +358,20 @@ const en: Dict = {
   "col.projRole": "Role",
   "col.projStatus": "Status",
   "col.projDue": "Apply by",
+  // tabs / dock panel / item pages
+  "tab.close": "Close tab",
+  "tab.closeOthersConfirm": "Close the other {n} tab(s)?",
+  "dock.pin": "Pin panel open",
+  "dock.unpin": "Unpin panel",
+  "dock.collapse": "Collapse panel",
+  "dock.expand": "Expand panel",
+  "dock.emptyPinned": "No item selected.",
+  "item.gone": "This item no longer exists.",
+  "item.backToList": "Back to list",
+  "item.openInTab": "Open in tab",
+  // review system link
+  "mform.reviewUrl": "Review system URL",
+  "rev.openSystem": "Open review system",
 };
 
 const zh: Dict = {
@@ -406,6 +426,12 @@ const zh: Dict = {
   "dash.subtitle": "所有带日期的事项，汇成一条时间线",
   "dash.upcoming": "即将到来",
   "dash.past": "已过期",
+  "dash.filter.all": "全部",
+  "dash.filter.venue": "期刊会议",
+  "dash.filter.review": "审稿",
+  "dash.filter.paper": "论文",
+  "dash.filter.project": "项目",
+  "dash.filter.task": "待办",
   "dash.empty.title": "暂无截止事项",
   "dash.empty.hint":
     "添加一个带征稿的期刊/会议、记录一次审稿、或追踪论文修改截止——带日期的事项会在这里以实时倒计时显示。",
@@ -541,7 +567,7 @@ const zh: Dict = {
   "set.about": "关于 Acta",
   "set.aboutDesc":
     "本地优先的学术工作流工具：期刊 / 会议截止、审稿记录，以及你自己的论文进度。",
-  "set.version": "版本 0.5.0",
+  "set.version": "版本 0.6.0",
   "set.confirmImport": "导入将用备份内容【替换】当前所有数据。是否继续？",
   "set.exported": "已导出 {n} 条记录到 {path}",
   "set.imported": "已从 {path} 导入备份",
@@ -673,6 +699,18 @@ const zh: Dict = {
   "col.projRole": "角色",
   "col.projStatus": "状态",
   "col.projDue": "申请截止",
+  "tab.close": "关闭标签",
+  "tab.closeOthersConfirm": "关闭其它 {n} 个标签？",
+  "dock.pin": "常驻面板",
+  "dock.unpin": "取消常驻",
+  "dock.collapse": "收起面板",
+  "dock.expand": "展开面板",
+  "dock.emptyPinned": "未选择条目。",
+  "item.gone": "该条目已不存在或已被删除。",
+  "item.backToList": "返回列表",
+  "item.openInTab": "在标签页打开",
+  "mform.reviewUrl": "审稿系统链接",
+  "rev.openSystem": "打开审稿系统",
 };
 
 const dicts: Record<Locale, Dict> = { en, zh };

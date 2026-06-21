@@ -11,6 +11,11 @@ export async function listPatents(scope: ListScope = "active"): Promise<Patent[]
   );
 }
 
+export async function getPatent(id: string): Promise<Patent | null> {
+  const rows = await select<Patent>(`SELECT * FROM patents WHERE id = $1`, [id]);
+  return rows[0] ?? null;
+}
+
 export type PatentInput = Omit<Patent, keyof SyncFields | "archived_at">;
 
 export function createPatent(data: PatentInput): Promise<string> {

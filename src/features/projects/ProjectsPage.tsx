@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Archive, ArchiveRestore, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
-import { ResizableRight } from "@/components/layout/ResizableRight";
+import { DockPanel } from "@/components/layout/DockPanel";
 import { Button, TextInput } from "@/components/ui/controls";
 import { Badge, CountdownBadge } from "@/components/ui/misc";
 import { ListControls, type Option } from "@/components/ui/ListControls";
@@ -16,7 +16,9 @@ import type { Project, ProjectCategory, ProjectStatus } from "@/db/types";
 import { formatDate, formatDeadline } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
-import { arrange, cmpDesc, cmpDue, cmpStr, useListView } from "@/lib/listview";
+import { arrange, cmpDesc, cmpDueSoon, cmpStr, useListView } from "@/lib/listview";
+import { itemTab, itemTabId } from "@/lib/tabs";
+import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
 import { ProjectForm } from "./ProjectForm";
 
@@ -41,9 +43,12 @@ const compare = (key: string, a: Row, b: Row) => {
     case "name":
       return cmpStr(a.name, b.name);
     case "due":
-      return cmpDue(a._due, b._due);
+      return cmpDueSoon(a._due, b._due);
     case "status":
-      return STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) || cmpDue(a._due, b._due);
+      return (
+        STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status) ||
+        cmpDueSoon(a._due, b._due)
+      );
     default:
       return cmpDesc(a.updated_at, b.updated_at);
   }
@@ -118,9 +123,18 @@ export function ProjectsPage({ category }: { category: ProjectCategory }) {
       return next;
     });
 
+  const section = `projects/${category}`;
+  const openItem = (rid: string) => {
+    const p = items.find((x) => x.id === rid);
+    const tab = itemTab(section, rid, p?.name ?? "");
+    useTabs.getState().openTab(tab);
+    navigate(tab.href);
+  };
+
   const remove = async (p: Project) => {
     if (await confirmDialog(t("proj.confirmDelete", { name: p.name }))) {
       await deleteProject(p.id);
+      useTabs.getState().closeTab(itemTabId(section, p.id));
       useRefresh.getState().bump();
       if (id === p.id) navigate(base);
     }
@@ -160,7 +174,7 @@ export function ProjectsPage({ category }: { category: ProjectCategory }) {
             onSort={(k) => setView({ sort: k })}
             getId={(p) => p.id}
             selectedId={id}
-            onSelect={(rid) => navigate(`${base}/${rid}`)}
+            onSelect={openItem}
             collapsed={collapsed}
             onToggle={toggle}
             empty={
@@ -171,16 +185,19 @@ export function ProjectsPage({ category }: { category: ProjectCategory }) {
           />
         </div>
 
-        {selected && (
-          <ResizableRight storageKey="acta.w.detail" defaultWidth={440}>
+        <DockPanel
+          selected={!!selected}
+          onOpenInTab={selected ? () => openItem(selected.id) : undefined}
+        >
+          {selected && (
             <ProjectDetail
               project={selected}
               t={t}
               onEdit={() => setForm({ open: true, edit: selected })}
               onDelete={() => remove(selected)}
             />
-          </ResizableRight>
-        )}
+          )}
+        </DockPanel>
         </div>
       </div>
 
@@ -205,7 +222,7 @@ function field(label: string, value: string | null) {
   );
 }
 
-function ProjectDetail({
+export function ProjectDetail({
   project,
   t,
   onEdit,

@@ -28,6 +28,7 @@ function empty(): ManuscriptInput {
     manuscript_id: "",
     role: "reviewer",
     status: "invited",
+    review_url: "",
     notes: "",
   };
 }
@@ -59,6 +60,7 @@ export function ManuscriptForm({
             manuscript_id: existing.manuscript_id ?? "",
             role: existing.role,
             status: existing.status,
+            review_url: existing.review_url ?? "",
             notes: existing.notes ?? "",
           }
         : empty(),
@@ -142,6 +144,13 @@ export function ManuscriptForm({
             </Select>
           </Field>
         </div>
+        <Field label={t("mform.reviewUrl")}>
+          <TextInput
+            value={form.review_url ?? ""}
+            placeholder="https://mc.manuscriptcentral.com/…"
+            onChange={(e) => set("review_url", e.target.value)}
+          />
+        </Field>
         <Field label={t("common.notes")}>
           <Textarea rows={3} value={form.notes ?? ""} onChange={(e) => set("notes", e.target.value)} />
         </Field>

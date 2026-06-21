@@ -66,7 +66,8 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-full w-full flex-col border-r border-border bg-surface-sunken">
-      <div className="flex items-center gap-2 px-4 py-3.5">
+      {/* Top padding clears the overlaid macOS traffic-light buttons. */}
+      <div data-tauri-drag-region className="flex items-center gap-2 px-4 pb-2.5 pt-8">
         <span className="grid h-6 w-6 place-items-center rounded bg-accent text-accent-fg text-sm font-bold">
           A
         </span>

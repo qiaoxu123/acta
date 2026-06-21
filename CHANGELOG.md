@@ -1,5 +1,64 @@
 # Changelog
 
+## [0.6.0] - 2026-06-21
+
+Zotero-style tabbed workspace, dockable preview panel, and review-system links.
+
+### Features
+
+- **Tabbed workspace** (`src/store/tabs.ts`, `src/lib/tabs.ts`,
+  `src/components/layout/TabBar.tsx` + `useTabSync.ts`): a browser-like tab strip
+  above the routed content. **Double-click** a list row to open the record in a
+  dedicated full-width management tab (`/<section>/item/:id`); **single-click**
+  still previews it in the side panel. Tabs de-dupe (re-opening focuses the
+  existing tab), are closeable (X / middle-click), support right-click
+  "close others", and persist across restarts. Tabs are route-driven — the
+  store records hrefs and `useTabSync` is the single router↔store reconciler, so
+  sidebar clicks, deep links, and back/forward all stay consistent.
+- **Dockable preview panel** (`src/store/dockPanel.ts`,
+  `src/components/layout/DockPanel.tsx`): the right detail panel can be **pinned**
+  (stays open across selections) or **collapsed** to a thin reopen strip. State
+  is global and persisted; all five list pages share it via one component.
+- **Review-system links**: `reviewed_manuscripts` gains a `review_url` column
+  (migration `0004`) with a form field and an "open review system" link in the
+  detail view — jump straight to ScholarOne / Editorial Manager / IEEE.
+- **Item tabs self-heal**: deleting a record closes its tab; a tab whose record
+  no longer exists shows a "back to list" state instead of erroring.
+- **Reclaimed macOS title bar**: the window uses an overlay title bar, so the tab
+  strip sits flush at the top (draggable) and the sidebar logo tucks under the
+  traffic lights — no more wasted top band.
+
+### UX refinements (post-review pass)
+
+- **A single click opens the record in a tab** (focuses the tab if it's already
+  open — no duplicates). No double-click, no preview state: clicking a row goes
+  straight to its management tab. The old right-side preview panel is retired in
+  favor of this; its dock code remains dormant and can be re-enabled if wanted.
+- **Safer "close others"**: right-clicking a tab now asks for confirmation
+  before closing the rest, instead of silently wiping them.
+
+### Robustness (adversarial review)
+
+- DataTable's single-click timer is cleared on unmount (no navigate-after-unmount).
+- A malformed persisted tab href is dropped individually instead of discarding
+  the whole saved workspace; a confirmed-gone item tab now removes itself.
+
+### Design Rationale
+
+- **Route-driven tabs over keep-all-mounted**: the app already stores selection
+  in the URL, so layering tabs as a presentation view over the existing hash
+  router keeps memory low and avoids re-plumbing routing for N live views.
+  One-directional data flow (UI → navigate → `useTabSync` → store) with an
+  early-return guard prevents navigation feedback loops and StrictMode dupes.
+- **Shared detail components**: `ManuscriptDetail` (and the other `XDetail`s)
+  render identically in the side panel and the item tab, so the two surfaces
+  never drift.
+
+### Notes & Caveats
+
+- `review_url` values are back-filled from invitation emails by a one-off script;
+  unmatched manuscripts keep an empty link and can be filled manually in the form.
+
 ## [0.5.0] - 2026-06-21
 
 Cross-platform releases + WebDAV multi-device sync.

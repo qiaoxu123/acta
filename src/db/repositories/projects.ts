@@ -11,6 +11,11 @@ export async function listProjects(scope: ListScope = "active"): Promise<Project
   );
 }
 
+export async function getProject(id: string): Promise<Project | null> {
+  const rows = await select<Project>(`SELECT * FROM projects WHERE id = $1`, [id]);
+  return rows[0] ?? null;
+}
+
 export type ProjectInput = Omit<Project, keyof SyncFields | "archived_at">;
 
 export function createProject(data: ProjectInput): Promise<string> {

@@ -9,7 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
-import { ResizableRight } from "@/components/layout/ResizableRight";
+import { DockPanel } from "@/components/layout/DockPanel";
 import { Button } from "@/components/ui/controls";
 import { Badge, CountdownBadge } from "@/components/ui/misc";
 import { ListControls, type Option } from "@/components/ui/ListControls";
@@ -26,7 +26,9 @@ import type { Paper, PaperSubmission } from "@/db/types";
 import { formatDate, formatDeadline } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
-import { arrange, cmpDesc, cmpDue, cmpStr, useListView } from "@/lib/listview";
+import { arrange, cmpDesc, cmpDueSoon, cmpStr, useListView } from "@/lib/listview";
+import { itemTab, itemTabId } from "@/lib/tabs";
+import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
 import { PaperForm } from "./PaperForm";
 import { SubmissionForm } from "./SubmissionForm";
@@ -62,7 +64,7 @@ const compare = (key: string, a: Row, b: Row) => {
     case "target":
       return cmpStr(a.target_venue, b.target_venue) || cmpStr(a.title, b.title);
     case "due":
-      return cmpDue(a._due, b._due);
+      return cmpDueSoon(a._due, b._due);
     case "role":
       return roleRank(a.my_role) - roleRank(b.my_role) || cmpDesc(a.updated_at, b.updated_at);
     case "status":
@@ -183,9 +185,17 @@ export function PapersPage() {
       return next;
     });
 
+  const openItem = (rid: string) => {
+    const p = papers.find((x) => x.id === rid);
+    const tab = itemTab("papers", rid, p?.title ?? "");
+    useTabs.getState().openTab(tab);
+    navigate(tab.href);
+  };
+
   const remove = async (p: Paper) => {
     if (await confirmDialog(t("pap.confirmDelete", { title: p.title }))) {
       await deletePaper(p.id);
+      useTabs.getState().closeTab(itemTabId("papers", p.id));
       useRefresh.getState().bump();
       if (id === p.id) navigate("/papers");
     }
@@ -230,7 +240,7 @@ export function PapersPage() {
             onSort={(k) => setView({ sort: k })}
             getId={(p) => p.id}
             selectedId={id}
-            onSelect={(rid) => navigate(`/papers/${rid}`)}
+            onSelect={openItem}
             collapsed={collapsed}
             onToggle={toggle}
             empty={
@@ -241,16 +251,19 @@ export function PapersPage() {
           />
         </div>
 
-        {selected && (
-          <ResizableRight storageKey="acta.w.detail" defaultWidth={440}>
+        <DockPanel
+          selected={!!selected}
+          onOpenInTab={selected ? () => openItem(selected.id) : undefined}
+        >
+          {selected && (
             <PaperDetail
               paper={selected}
               t={t}
               onEdit={() => setForm({ open: true, edit: selected })}
               onDelete={() => remove(selected)}
             />
-          </ResizableRight>
-        )}
+          )}
+        </DockPanel>
         </div>
       </div>
 
@@ -264,7 +277,7 @@ export function PapersPage() {
   );
 }
 
-function PaperDetail({
+export function PaperDetail({
   paper,
   t,
   onEdit,

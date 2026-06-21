@@ -10,7 +10,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
-import { ResizableRight } from "@/components/layout/ResizableRight";
+import { DockPanel } from "@/components/layout/DockPanel";
 import { Button, TextInput } from "@/components/ui/controls";
 import { Badge, CountdownBadge } from "@/components/ui/misc";
 import { ListControls } from "@/components/ui/ListControls";
@@ -28,6 +28,8 @@ import { formatDate, formatDeadline } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
 import { arrange, cmpDesc, cmpDue, cmpStr, useListView } from "@/lib/listview";
+import { itemTab, itemTabId } from "@/lib/tabs";
+import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
 import { VenueForm } from "./VenueForm";
 import { EditionForm } from "./EditionForm";
@@ -133,9 +135,18 @@ export function VenuesPage({ kind }: { kind: "journal" | "conference" }) {
       return next;
     });
 
+  const section = kind === "journal" ? "journals" : "conferences";
+  const openItem = (rid: string) => {
+    const v = venues.find((x) => x.id === rid);
+    const tab = itemTab(section, rid, v ? nameOf(v) : "");
+    useTabs.getState().openTab(tab);
+    navigate(tab.href);
+  };
+
   const removeVenue = async (v: Venue) => {
     if (await confirmDialog(t("vform.confirmDelete", { name: v.name }))) {
       await deleteVenue(v.id);
+      useTabs.getState().closeTab(itemTabId(section, v.id));
       useRefresh.getState().bump();
       if (id === v.id) navigate(base);
     }
@@ -178,7 +189,7 @@ export function VenuesPage({ kind }: { kind: "journal" | "conference" }) {
             onSort={(k) => setView({ sort: k })}
             getId={(v) => v.id}
             selectedId={id}
-            onSelect={(rid) => navigate(`${base}/${rid}`)}
+            onSelect={openItem}
             collapsed={collapsed}
             onToggle={toggle}
             empty={
@@ -189,16 +200,19 @@ export function VenuesPage({ kind }: { kind: "journal" | "conference" }) {
           />
         </div>
 
-        {selected && (
-          <ResizableRight storageKey="acta.w.detail" defaultWidth={440}>
+        <DockPanel
+          selected={!!selected}
+          onOpenInTab={selected ? () => openItem(selected.id) : undefined}
+        >
+          {selected && (
             <VenueDetail
               venue={selected}
               t={t}
               onEdit={() => setVenueForm({ open: true, edit: selected })}
               onDelete={() => removeVenue(selected)}
             />
-          </ResizableRight>
-        )}
+          )}
+        </DockPanel>
         </div>
       </div>
 
@@ -213,7 +227,7 @@ export function VenuesPage({ kind }: { kind: "journal" | "conference" }) {
   );
 }
 
-function VenueDetail({
+export function VenueDetail({
   venue,
   t,
   onEdit,

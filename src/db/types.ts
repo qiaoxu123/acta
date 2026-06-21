@@ -67,6 +67,7 @@ export interface ReviewedManuscript extends SyncFields {
   manuscript_id: string | null;
   role: ReviewerRole;
   status: ManuscriptStatus;
+  review_url: string | null;
   notes: string | null;
   archived_at: string | null;
 }

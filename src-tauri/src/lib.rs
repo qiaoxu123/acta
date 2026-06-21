@@ -23,6 +23,12 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0003_patents_projects.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 4,
+            description: "review system url on reviewed_manuscripts",
+            sql: include_str!("../migrations/0004_review_url.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

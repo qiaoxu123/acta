@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Archive, ArchiveRestore, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
-import { ResizableRight } from "@/components/layout/ResizableRight";
+import { DockPanel } from "@/components/layout/DockPanel";
 import { Button, TextInput } from "@/components/ui/controls";
 import { Badge } from "@/components/ui/misc";
 import { ListControls, type Option } from "@/components/ui/ListControls";
@@ -17,6 +17,8 @@ import { formatDate } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
 import { arrange, cmpDesc, cmpStr, useListView } from "@/lib/listview";
+import { itemTab, itemTabId } from "@/lib/tabs";
+import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
 import { PatentForm } from "./PatentForm";
 
@@ -98,9 +100,17 @@ export function PatentsPage() {
       return next;
     });
 
+  const openItem = (rid: string) => {
+    const p = items.find((x) => x.id === rid);
+    const tab = itemTab("patents", rid, p?.title ?? "");
+    useTabs.getState().openTab(tab);
+    navigate(tab.href);
+  };
+
   const remove = async (p: Patent) => {
     if (await confirmDialog(t("pat.confirmDelete", { title: p.title }))) {
       await deletePatent(p.id);
+      useTabs.getState().closeTab(itemTabId("patents", p.id));
       useRefresh.getState().bump();
       if (id === p.id) navigate("/patents");
     }
@@ -138,7 +148,7 @@ export function PatentsPage() {
             onSort={(k) => setView({ sort: k })}
             getId={(p) => p.id}
             selectedId={id}
-            onSelect={(rid) => navigate(`/patents/${rid}`)}
+            onSelect={openItem}
             collapsed={collapsed}
             onToggle={toggle}
             empty={
@@ -149,16 +159,19 @@ export function PatentsPage() {
           />
         </div>
 
-        {selected && (
-          <ResizableRight storageKey="acta.w.detail" defaultWidth={440}>
+        <DockPanel
+          selected={!!selected}
+          onOpenInTab={selected ? () => openItem(selected.id) : undefined}
+        >
+          {selected && (
             <PatentDetail
               patent={selected}
               t={t}
               onEdit={() => setForm({ open: true, edit: selected })}
               onDelete={() => remove(selected)}
             />
-          </ResizableRight>
-        )}
+          )}
+        </DockPanel>
         </div>
       </div>
 
@@ -182,7 +195,7 @@ function row(label: string, value: string | null) {
   );
 }
 
-function PatentDetail({
+export function PatentDetail({
   patent,
   t,
   onEdit,
