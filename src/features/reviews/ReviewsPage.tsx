@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Archive, ArchiveRestore, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
-import { ResizableBottom } from "@/components/layout/ResizableBottom";
+import { ResizableRight } from "@/components/layout/ResizableRight";
 import { Button, TextInput } from "@/components/ui/controls";
 import { Badge, CountdownBadge } from "@/components/ui/misc";
 import { ListControls, type Option } from "@/components/ui/ListControls";
@@ -90,6 +90,17 @@ export function ReviewsPage() {
     listManuscripts(view.scope).then(setItems);
     reviewDueMap().then(setDueMap);
   }, [tick, view.scope]);
+
+  // Keep the list tidy: when grouped by status, collapse everything except the
+  // reviews actually in progress (accepted / in_progress), so the large pile of
+  // unanswered invitations stays tucked away (one click to expand).
+  useEffect(() => {
+    setCollapsed(
+      view.group === "status"
+        ? new Set(["invited", "submitted", "done", "declined"])
+        : new Set(),
+    );
+  }, [view.group]);
 
   const groupOf = (key: string, m: Row) => {
     if (key === "venue") return { key: m.venue_name || "—", label: m.venue_name || "—" };
@@ -212,7 +223,8 @@ export function ReviewsPage() {
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-auto">
+        <div className="flex min-h-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-auto">
           <DataTable
             columns={columns}
             sections={sections}
@@ -232,15 +244,16 @@ export function ReviewsPage() {
         </div>
 
         {selected && (
-          <ResizableBottom storageKey="acta.h.detail" defaultHeight={280}>
+          <ResizableRight storageKey="acta.w.detail" defaultWidth={440}>
             <ManuscriptDetail
               manuscript={selected}
               t={t}
               onEdit={() => setForm({ open: true, edit: selected })}
               onDelete={() => remove(selected)}
             />
-          </ResizableBottom>
+          </ResizableRight>
         )}
+        </div>
       </div>
 
       <ManuscriptForm

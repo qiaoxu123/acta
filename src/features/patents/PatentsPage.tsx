@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Archive, ArchiveRestore, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
-import { ResizableBottom } from "@/components/layout/ResizableBottom";
+import { ResizableRight } from "@/components/layout/ResizableRight";
 import { Button, TextInput } from "@/components/ui/controls";
 import { Badge } from "@/components/ui/misc";
 import { ListControls, type Option } from "@/components/ui/ListControls";
@@ -129,7 +129,8 @@ export function PatentsPage() {
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-auto">
+        <div className="flex min-h-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-auto">
           <DataTable
             columns={columns}
             sections={sections}
@@ -149,15 +150,16 @@ export function PatentsPage() {
         </div>
 
         {selected && (
-          <ResizableBottom storageKey="acta.h.detail" defaultHeight={240}>
+          <ResizableRight storageKey="acta.w.detail" defaultWidth={440}>
             <PatentDetail
               patent={selected}
               t={t}
               onEdit={() => setForm({ open: true, edit: selected })}
               onDelete={() => remove(selected)}
             />
-          </ResizableBottom>
+          </ResizableRight>
         )}
+        </div>
       </div>
 
       <PatentForm

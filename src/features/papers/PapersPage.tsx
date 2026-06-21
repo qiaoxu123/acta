@@ -9,7 +9,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
-import { ResizableBottom } from "@/components/layout/ResizableBottom";
+import { ResizableRight } from "@/components/layout/ResizableRight";
 import { Button } from "@/components/ui/controls";
 import { Badge, CountdownBadge } from "@/components/ui/misc";
 import { ListControls, type Option } from "@/components/ui/ListControls";
@@ -221,7 +221,8 @@ export function PapersPage() {
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-auto">
+        <div className="flex min-h-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-auto">
           <DataTable
             columns={columns}
             sections={sections}
@@ -241,15 +242,16 @@ export function PapersPage() {
         </div>
 
         {selected && (
-          <ResizableBottom storageKey="acta.h.detail" defaultHeight={280}>
+          <ResizableRight storageKey="acta.w.detail" defaultWidth={440}>
             <PaperDetail
               paper={selected}
               t={t}
               onEdit={() => setForm({ open: true, edit: selected })}
               onDelete={() => remove(selected)}
             />
-          </ResizableBottom>
+          </ResizableRight>
         )}
+        </div>
       </div>
 
       <PaperForm
