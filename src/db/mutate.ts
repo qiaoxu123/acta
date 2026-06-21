@@ -1,6 +1,7 @@
 import { execute } from "./client";
 import { newId } from "../lib/ids";
 import { nowIso } from "../lib/dates";
+import { ALL_TABLES } from "./types";
 
 /**
  * The single write gateway for the whole app. Every create/update/delete goes
@@ -82,5 +83,24 @@ export async function insertRaw(table: string, rows: Row[]): Promise<void> {
       `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${placeholders})`,
       cols.map((c) => row[c]),
     );
+  }
+}
+
+/** Insert-or-replace rows by primary key (used by the sync merge). */
+export async function upsertRaw(table: string, rows: Row[]): Promise<void> {
+  for (const row of rows) {
+    const cols = Object.keys(row);
+    const placeholders = cols.map((_, i) => `$${i + 1}`).join(", ");
+    await execute(
+      `INSERT OR REPLACE INTO ${table} (${cols.join(", ")}) VALUES (${placeholders})`,
+      cols.map((c) => row[c]),
+    );
+  }
+}
+
+/** Mark every row clean after a successful sync push. */
+export async function markAllClean(): Promise<void> {
+  for (const t of ALL_TABLES) {
+    await execute(`UPDATE ${t} SET sync_status = 'clean' WHERE sync_status = 'dirty'`);
   }
 }

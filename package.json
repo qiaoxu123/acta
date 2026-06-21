@@ -1,6 +1,6 @@
 {
   "name": "acta",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "description": "Acta — a Zotero-style desktop app to track journal/conference deadlines, peer reviews, and your own paper progress.",
   "type": "module",
   "private": true,
@@ -20,6 +20,7 @@
     "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/plugin-dialog": "^2.2.0",
     "@tauri-apps/plugin-fs": "^2.2.0",
+    "@tauri-apps/plugin-http": "^2.4.0",
     "@tauri-apps/plugin-sql": "^2.2.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
