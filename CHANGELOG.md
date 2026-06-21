@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.5.0] - 2026-06-21
+
+Cross-platform releases + WebDAV multi-device sync.
+
+### Features
+
+- **WebDAV cloud sync** (`src/sync/`): opt-in in Settings. Local save is always
+  on; when enabled, the app keeps a single JSON snapshot on a WebDAV server
+  (Nextcloud / 坚果云 / Synology…) and converges devices with **last-write-wins
+  by `updated_at`**, propagating deletions via tombstones. Syncs on launch, on a
+  3-minute interval, and via a "Sync now" button. HTTP runs through Tauri's
+  http plugin (Rust side) so any user-configured host works regardless of CSP.
+- **Right-side detail panel**: the five table pages now open the selected row's
+  detail in a drag-resizable right panel instead of a bottom one.
+- **Reviews tidy-up**: non-active status groups collapse by default; statuses
+  back-filled from mailbox subject signals.
+- **Cross-platform release CI** (`.github/workflows/release.yml`): pushing a
+  `v*` tag builds macOS (universal), Windows and Linux installers and publishes
+  them to a GitHub Release.
+
+### Design Rationale
+
+- Snapshot + LWW (over a change-log/CRDT) is the simplest correct design for a
+  single-user, few-devices tool; the data model's per-row `updated_at` /
+  tombstones (reserved since v0.1) make it a small addition.
+
+### Notes & Caveats
+
+- Concurrent edits on two devices within the same sync window can lose the
+  earlier push (no ETag/If-Match yet) — fine for personal use; hardening later.
+- WebDAV password is stored in local app storage (never committed).
+
 ## [0.4.0] - 2026-06-21
 
 Outputs & projects: papers-by-role, patents, grants, grouped sidebar.

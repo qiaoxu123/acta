@@ -48,8 +48,21 @@ npm run tauri dev      # launch the desktop app with hot reload
 npm run tauri build    # produce a native installer for the current OS
 ```
 
-CI builds macOS and Windows artifacts on every push — see
-[`.github/workflows/build.yml`](.github/workflows/build.yml).
+## Releases
+
+Pushing a `v*` tag triggers
+[`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
+**macOS (universal), Windows and Linux** installers and publishes them to a
+GitHub Release. Grab the latest from the repo's
+[Releases](../../releases) page.
+
+## Sync across devices
+
+Settings → **Cloud sync (WebDAV)**: point it at a WebDAV server (Nextcloud,
+坚果云, Synology, …) with your username + app password. Data stays local-first;
+when enabled it converges all devices via a snapshot on the server (last-write-
+wins by edit time, deletions propagated). See
+[`docs/sync-design.md`](docs/sync-design.md).
 
 ## Automation API (AI-callable)
 

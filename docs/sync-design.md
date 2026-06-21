@@ -1,8 +1,12 @@
-# Cloud Sync — Design Reservation
+# Cloud Sync — Design
 
 Acta is **local-first**: all data lives in a local SQLite database and the app
-works fully offline. Cloud sync is **not implemented yet**, but the data model
-and write path are deliberately shaped so it can be added without a rewrite.
+works fully offline.
+
+> **Status (v0.5):** an opt-in **WebDAV** sync is now implemented (`src/sync/`).
+> It uses the snapshot + last-write-wins approach described below (the
+> "file-sync folder" option). Configure it in Settings → Cloud sync. The rest of
+> this document records the design and the room left for a richer engine.
 
 ## What's already in place
 
