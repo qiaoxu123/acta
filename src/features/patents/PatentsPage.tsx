@@ -17,8 +17,7 @@ import { formatDate } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
 import { arrange, cmpDesc, cmpStr, useListView } from "@/lib/listview";
-import { itemTab, itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
+import { itemHref } from "@/lib/tabs";
 import { useRefresh } from "@/store/refresh";
 import { PatentForm } from "./PatentForm";
 
@@ -100,17 +99,11 @@ export function PatentsPage() {
       return next;
     });
 
-  const openItem = (rid: string) => {
-    const p = items.find((x) => x.id === rid);
-    const tab = itemTab("patents", rid, p?.title ?? "");
-    useTabs.getState().openTab(tab);
-    navigate(tab.href);
-  };
+  const openItem = (rid: string) => navigate(itemHref("patents", rid));
 
   const remove = async (p: Patent) => {
     if (await confirmDialog(t("pat.confirmDelete", { title: p.title }))) {
       await deletePatent(p.id);
-      useTabs.getState().closeTab(itemTabId("patents", p.id));
       useRefresh.getState().bump();
       if (id === p.id) navigate("/patents");
     }
@@ -142,6 +135,7 @@ export function PatentsPage() {
         <div className="flex min-h-0 flex-1">
           <div className="min-w-0 flex-1 overflow-auto">
           <DataTable
+            storageKey="patents"
             columns={columns}
             sections={sections}
             sortKey={view.sort}

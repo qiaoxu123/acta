@@ -6,8 +6,6 @@ import { deleteProject, getProject } from "@/db/repositories/projects";
 import type { Project, ProjectCategory } from "@/db/types";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
-import { itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
 import { ProjectForm } from "./ProjectForm";
 import { ProjectDetail } from "./ProjectsPage";
@@ -18,7 +16,6 @@ export function ProjectItemPage({ category }: { category: ProjectCategory }) {
   const navigate = useNavigate();
   const { t } = useI18n();
   const tick = useRefresh((s) => s.tick);
-  const section = `projects/${category}`;
   const base = `/projects/${category}`;
   const [p, setP] = useState<Project | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -27,23 +24,21 @@ export function ProjectItemPage({ category }: { category: ProjectCategory }) {
   useEffect(() => {
     if (!id) return;
     setLoaded(false);
+    setP(null); // drop the previous record so its title can't flash in the breadcrumb
     getProject(id).then((rec) => {
       setP(rec);
       setLoaded(true);
-      if (rec) useTabs.getState().setTitle(itemTabId(section, id), rec.name);
     });
-  }, [id, tick, section]);
+  }, [id, tick]);
 
-  if (loaded && !p)
-    return <ItemGone listHref={base} tabId={id ? itemTabId(section, id) : undefined} />;
+  if (loaded && !p) return <ItemGone listHref={base} />;
   if (!p) return null;
 
   const remove = async () => {
     if (await confirmDialog(t("proj.confirmDelete", { name: p.name }))) {
       await deleteProject(p.id);
-      const next = useTabs.getState().closeTab(itemTabId(section, p.id));
       useRefresh.getState().bump();
-      navigate(next ?? base);
+      navigate(base);
     }
   };
 

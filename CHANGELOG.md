@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.8.0] - 2026-06-22
+
+wolai-style breadcrumb navigation replaces the tab strip, plus resizable list columns.
+
+### Features
+
+- **Breadcrumb path bar replaces workspace tabs**: the browser-style tab strip is
+  gone. The top bar now shows a wolai-style location path — `〔icon〕section ›
+  record` (e.g. `📚 Reviews › TMC-2026-05-2172`) — with the section segment
+  clickable to jump back to its list. Clicking a list row navigates into the
+  record's full-width view; back/forward buttons walk history. Cleaner, less
+  chrome, no tab pile-up. The bar still doubles as the draggable macOS title bar
+  (double-click to zoom).
+- **Drag-to-resize table columns** (Zotero-style): every list (reviews, papers,
+  patents, projects, ideas, journals, conferences) has draggable column borders.
+  Drag a column's right edge to resize; double-click the handle to reset. Widths
+  persist per-table in `localStorage` (`acta.cols.<table>`), so journals and
+  conferences remember their own layouts.
+
+### Design Rationale
+
+- Tabs were a Zotero-ism that added state (open set, order, focus, persistence)
+  and screen chrome for little gain in a single-window tool. A breadcrumb conveys
+  *where you are* with near-zero chrome and leans on browser-style back/forward
+  for *where you were*. Item pages publish their `section › record` trail to a
+  small zustand store (`src/store/breadcrumb.ts`) via a now-headless `Breadcrumb`
+  component; the top bar renders that trail only when it matches the live path and
+  otherwise derives a section-only crumb from the route — so a stale title can
+  never leak onto a list page.
+- Column widths live in `localStorage`, not the DB: they're per-device view
+  preferences, not synced data. Persisted once on drag-end (not per mousemove).
+
+### Notes & Caveats
+
+- Removing tabs drops middle-click-close, right-click "close others", multi-tab
+  restore, and per-list selection memory. Intentional for the breadcrumb model.
+- Deleted `TabBar.tsx`, `useTabSync.ts`, `store/tabs.ts`; slimmed `lib/tabs.ts`
+  to section-routing helpers (`sectionInfo`, `itemHref`). No DB/migration change.
+
 ## [0.7.0] - 2026-06-21
 
 Research-idea tracker with a git-graph evolution timeline.

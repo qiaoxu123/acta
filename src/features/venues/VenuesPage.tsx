@@ -29,8 +29,7 @@ import { formatDate, formatDeadline } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
 import { arrange, cmpDesc, cmpDue, cmpStr, useListView } from "@/lib/listview";
-import { itemTab, itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
+import { itemHref } from "@/lib/tabs";
 import { useRefresh } from "@/store/refresh";
 import { VenueForm } from "./VenueForm";
 import { EditionForm } from "./EditionForm";
@@ -137,17 +136,11 @@ export function VenuesPage({ kind }: { kind: "journal" | "conference" }) {
     });
 
   const section = kind === "journal" ? "journals" : "conferences";
-  const openItem = (rid: string) => {
-    const v = venues.find((x) => x.id === rid);
-    const tab = itemTab(section, rid, v ? nameOf(v) : "");
-    useTabs.getState().openTab(tab);
-    navigate(tab.href);
-  };
+  const openItem = (rid: string) => navigate(itemHref(section, rid));
 
   const removeVenue = async (v: Venue) => {
     if (await confirmDialog(t("vform.confirmDelete", { name: v.name }))) {
       await deleteVenue(v.id);
-      useTabs.getState().closeTab(itemTabId(section, v.id));
       useRefresh.getState().bump();
       if (id === v.id) navigate(base);
     }
@@ -184,6 +177,7 @@ export function VenuesPage({ kind }: { kind: "journal" | "conference" }) {
         <div className="flex min-h-0 flex-1">
           <div className="min-w-0 flex-1 overflow-auto">
           <DataTable
+            storageKey={kind}
             columns={columns}
             sections={sections}
             sortKey={view.sort}

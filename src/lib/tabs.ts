@@ -1,33 +1,12 @@
 /**
- * Tab model for the Zotero-style workspace. A tab is a thin presentation layer
- * over the existing hash router: each tab maps to an href, and the single
- * source of truth for "what path is which tab" lives here so the TabBar, the
- * row-open helpers, and `useTabSync` all parse paths the same way.
+ * Section routing helpers. A "section" is a top-level area of the app (reviews,
+ * papers, ideas, a project category…). This module is the single source of truth
+ * mapping pathnames ↔ sections so the top-bar breadcrumb and the row-open helpers
+ * agree on what path belongs to which section.
  *
- * Two kinds:
- *  - "list"  — a section's master list (e.g. /reviews). Title comes from i18n
- *              (`titleKey`) so it follows the language switch.
- *  - "item"  — a single record opened for full management (e.g.
- *              /reviews/item/<id>). Title is the record's own name.
- *
- * Note: an in-list selection like /reviews/<id> still maps to the list tab —
- * only the explicit /item/<id> route is an item tab.
+ * Records open at `/<base>/item/<id>` (full-width management view); the in-list
+ * selection `/<base>/<id>` still belongs to the same section.
  */
-import type { TFn } from "@/lib/i18n";
-
-export type TabKind = "list" | "item";
-
-export interface Tab {
-  id: string;
-  kind: TabKind;
-  section: string;
-  href: string;
-  itemId?: string;
-  title: string;
-  titleKey?: string;
-  closable: boolean;
-}
-
 interface SectionDef {
   key: string;
   base: string;
@@ -65,72 +44,21 @@ function findSection(pathname: string): SectionDef | null {
   return null;
 }
 
-function listTab(s: SectionDef): Tab {
-  return {
-    id: `list:${s.key}`,
-    kind: "list",
-    section: s.key,
-    href: s.base,
-    title: s.key,
-    titleKey: s.titleKey,
-    closable: s.key !== "dashboard",
-  };
+export interface SectionInfo {
+  key: string;
+  titleKey: string;
+  base: string;
 }
 
-/** Map any pathname to the tab that should be active for it (or null). */
-export function parsePath(pathname: string): Tab | null {
+/** The section a pathname lives in (for the top-bar breadcrumb), or null. */
+export function sectionInfo(pathname: string): SectionInfo | null {
   const s = findSection(pathname);
-  if (!s) return null;
-  const p = strip(pathname);
-  if (s.items) {
-    const prefix = s.base + "/item/";
-    if (p.startsWith(prefix)) {
-      let itemId: string;
-      try {
-        itemId = decodeURIComponent(p.slice(prefix.length));
-      } catch {
-        return null; // malformed persisted href — drop just this one
-      }
-      if (itemId)
-        return {
-          id: itemTabId(s.key, itemId),
-          kind: "item",
-          section: s.key,
-          href: p,
-          itemId,
-          title: "",
-          closable: true,
-        };
-    }
-  }
-  return listTab(s);
+  return s ? { key: s.key, titleKey: s.titleKey, base: s.base } : null;
 }
 
-export function itemTabId(section: string, id: string): string {
-  return `${section}:${id}`;
-}
-
+/** The route that opens a record's full-width management view. */
 export function itemHref(section: string, id: string): string {
   const s = SECTIONS.find((x) => x.key === section);
-  if (!s) throw new Error(`unknown tab section: ${section}`);
+  if (!s) throw new Error(`unknown section: ${section}`);
   return `${s.base}/item/${encodeURIComponent(id)}`;
-}
-
-/** Build the descriptor for opening a record in a dedicated management tab. */
-export function itemTab(section: string, id: string, title: string): Tab {
-  return {
-    id: itemTabId(section, id),
-    kind: "item",
-    section,
-    href: itemHref(section, id),
-    itemId: id,
-    title,
-    closable: true,
-  };
-}
-
-/** Display label: list tabs translate their key, item tabs show the record name. */
-export function tabLabel(tab: Tab, t: TFn): string {
-  if (tab.titleKey) return t(tab.titleKey);
-  return tab.title || "…";
 }

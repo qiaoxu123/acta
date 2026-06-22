@@ -28,8 +28,7 @@ import { formatDate, formatDeadline } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
 import { arrange, cmpDesc, cmpDueSoon, cmpStr, useListView } from "@/lib/listview";
-import { itemTab, itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
+import { itemHref } from "@/lib/tabs";
 import { useRefresh } from "@/store/refresh";
 import { PaperForm } from "./PaperForm";
 import { SubmissionForm } from "./SubmissionForm";
@@ -186,17 +185,11 @@ export function PapersPage() {
       return next;
     });
 
-  const openItem = (rid: string) => {
-    const p = papers.find((x) => x.id === rid);
-    const tab = itemTab("papers", rid, p?.title ?? "");
-    useTabs.getState().openTab(tab);
-    navigate(tab.href);
-  };
+  const openItem = (rid: string) => navigate(itemHref("papers", rid));
 
   const remove = async (p: Paper) => {
     if (await confirmDialog(t("pap.confirmDelete", { title: p.title }))) {
       await deletePaper(p.id);
-      useTabs.getState().closeTab(itemTabId("papers", p.id));
       useRefresh.getState().bump();
       if (id === p.id) navigate("/papers");
     }
@@ -235,6 +228,7 @@ export function PapersPage() {
         <div className="flex min-h-0 flex-1">
           <div className="min-w-0 flex-1 overflow-auto">
           <DataTable
+            storageKey="papers"
             columns={columns}
             sections={sections}
             sortKey={view.sort}

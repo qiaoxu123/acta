@@ -17,8 +17,7 @@ import { formatDate } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
 import { arrange, cmpDesc, cmpDueSoon, cmpStr, useListView } from "@/lib/listview";
-import { itemTab, itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
+import { itemHref } from "@/lib/tabs";
 import { useRefresh } from "@/store/refresh";
 import { ManuscriptForm } from "./ManuscriptForm";
 import { ManuscriptDetail } from "./ManuscriptDetail";
@@ -198,18 +197,12 @@ export function ReviewsPage() {
       return next;
     });
 
-  // A click opens (or focuses) the manuscript in its own management tab.
-  const openItem = (rid: string) => {
-    const m = items.find((x) => x.id === rid);
-    const tab = itemTab("reviews", rid, m?.title ?? "");
-    useTabs.getState().openTab(tab);
-    navigate(tab.href);
-  };
+  // A click opens the manuscript in its full-width management view.
+  const openItem = (rid: string) => navigate(itemHref("reviews", rid));
 
   const remove = async (m: ReviewedManuscript) => {
     if (await confirmDialog(t("rev.confirmDelete", { title: m.title }))) {
       await deleteManuscript(m.id);
-      useTabs.getState().closeTab(itemTabId("reviews", m.id));
       useRefresh.getState().bump();
       if (id === m.id) navigate("/reviews");
     }
@@ -246,6 +239,7 @@ export function ReviewsPage() {
         <div className="flex min-h-0 flex-1">
           <div className="min-w-0 flex-1 overflow-auto">
             <DataTable
+              storageKey="reviews"
               columns={columns}
               sections={sections}
               sortKey={view.sort}

@@ -17,8 +17,7 @@ import { formatDate, formatDeadline } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
 import { arrange, cmpDesc, cmpDueSoon, cmpStr, useListView } from "@/lib/listview";
-import { itemTab, itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
+import { itemHref } from "@/lib/tabs";
 import { useRefresh } from "@/store/refresh";
 import { ProjectForm } from "./ProjectForm";
 
@@ -124,17 +123,11 @@ export function ProjectsPage({ category }: { category: ProjectCategory }) {
     });
 
   const section = `projects/${category}`;
-  const openItem = (rid: string) => {
-    const p = items.find((x) => x.id === rid);
-    const tab = itemTab(section, rid, p?.name ?? "");
-    useTabs.getState().openTab(tab);
-    navigate(tab.href);
-  };
+  const openItem = (rid: string) => navigate(itemHref(section, rid));
 
   const remove = async (p: Project) => {
     if (await confirmDialog(t("proj.confirmDelete", { name: p.name }))) {
       await deleteProject(p.id);
-      useTabs.getState().closeTab(itemTabId(section, p.id));
       useRefresh.getState().bump();
       if (id === p.id) navigate(base);
     }
@@ -168,6 +161,7 @@ export function ProjectsPage({ category }: { category: ProjectCategory }) {
         <div className="flex min-h-0 flex-1">
           <div className="min-w-0 flex-1 overflow-auto">
           <DataTable
+            storageKey="projects"
             columns={columns}
             sections={sections}
             sortKey={view.sort}

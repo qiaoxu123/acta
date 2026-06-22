@@ -24,8 +24,7 @@ import type { ListScope, Spark, SparkKind } from "@/db/types";
 import { formatDate } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
-import { itemTab } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
+import { itemHref } from "@/lib/tabs";
 import { useRefresh } from "@/store/refresh";
 
 const KIND_ICON = { spark: Lightbulb, problem: CircleHelp } as const;
@@ -53,9 +52,7 @@ export function SparksPage() {
   const promote = async (s: Spark) => {
     const ideaId = await promoteSpark(s);
     useRefresh.getState().bump();
-    const tab = itemTab("ideas", ideaId, s.body.slice(0, 60));
-    useTabs.getState().openTab(tab);
-    navigate(tab.href);
+    navigate(itemHref("ideas", ideaId));
   };
 
   const remove = async (s: Spark) => {

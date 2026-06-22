@@ -6,8 +6,6 @@ import { deletePaper, getPaper } from "@/db/repositories/papers";
 import type { Paper } from "@/db/types";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
-import { itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
 import { PaperForm } from "./PaperForm";
 import { PaperDetail } from "./PapersPage";
@@ -25,23 +23,21 @@ export function PaperItemPage() {
   useEffect(() => {
     if (!id) return;
     setLoaded(false);
+    setP(null); // drop the previous record so its title can't flash in the breadcrumb
     getPaper(id).then((rec) => {
       setP(rec);
       setLoaded(true);
-      if (rec) useTabs.getState().setTitle(itemTabId("papers", id), rec.title);
     });
   }, [id, tick]);
 
-  if (loaded && !p)
-    return <ItemGone listHref="/papers" tabId={id ? itemTabId("papers", id) : undefined} />;
+  if (loaded && !p) return <ItemGone listHref="/papers" />;
   if (!p) return null;
 
   const remove = async () => {
     if (await confirmDialog(t("pap.confirmDelete", { title: p.title }))) {
       await deletePaper(p.id);
-      const next = useTabs.getState().closeTab(itemTabId("papers", p.id));
       useRefresh.getState().bump();
-      navigate(next ?? "/papers");
+      navigate("/papers");
     }
   };
 

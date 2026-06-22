@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Section } from "@/lib/listview";
 
 export interface Column<T> {
@@ -11,6 +11,18 @@ export interface Column<T> {
   sortable?: boolean;
   align?: "right";
   render: (item: T) => ReactNode;
+}
+
+const MIN_COL = 48;
+
+function loadWidths(storageKey?: string): Record<string, number> {
+  if (!storageKey) return {};
+  try {
+    const raw = localStorage.getItem(`acta.cols.${storageKey}`);
+    return raw ? (JSON.parse(raw) as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
 }
 
 /**
@@ -29,6 +41,7 @@ export function DataTable<T>({
   collapsed,
   onToggle,
   empty,
+  storageKey,
 }: {
   columns: Column<T>[];
   sections: Section<T>[];
@@ -41,8 +54,65 @@ export function DataTable<T>({
   collapsed: Set<string>;
   onToggle: (key: string) => void;
   empty?: ReactNode;
+  /** Persist drag-resized column widths under acta.cols.<storageKey>. */
+  storageKey?: string;
 }) {
-  const grid = { gridTemplateColumns: columns.map((c) => c.width).join(" ") };
+  const [widths, setWidths] = useState<Record<string, number>>(() => loadWidths(storageKey));
+  // Mirror of `widths` so the drag's mouseup handler can persist the final value
+  // without writing to localStorage on every mousemove frame.
+  const widthsRef = useRef(widths);
+  useEffect(() => {
+    widthsRef.current = widths;
+  }, [widths]);
+
+  const save = (w: Record<string, number>) => {
+    if (!storageKey) return;
+    try {
+      localStorage.setItem(`acta.cols.${storageKey}`, JSON.stringify(w));
+    } catch {
+      /* ignore quota / serialization errors */
+    }
+  };
+
+  // Drag a column's right border to set an explicit px width. The starting
+  // width is read from the live header cell so even flexible (1fr) columns get
+  // a concrete handle. Persisted once on mouseup. Double-click clears the override.
+  const startResize = (e: React.MouseEvent, key: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const cell = (e.currentTarget as HTMLElement).closest("[data-col]") as HTMLElement | null;
+    const startX = e.clientX;
+    const startW = cell?.getBoundingClientRect().width ?? MIN_COL;
+    const onMove = (ev: MouseEvent) => {
+      const w = Math.max(MIN_COL, Math.round(startW + ev.clientX - startX));
+      setWidths((prev) => ({ ...prev, [key]: w }));
+    };
+    const onUp = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      save(widthsRef.current);
+    };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  };
+
+  const resetCol = (key: string) =>
+    setWidths((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      save(next);
+      return next;
+    });
+
+  const grid = {
+    gridTemplateColumns: columns
+      .map((c) => (widths[c.key] != null ? `${widths[c.key]}px` : c.width))
+      .join(" "),
+  };
   const total = sections.reduce((n, s) => n + s.items.length, 0);
 
   return (
@@ -52,21 +122,33 @@ export function DataTable<T>({
         style={grid}
         className="sticky top-0 z-10 grid items-center gap-x-3 border-b border-border bg-panel px-3 py-1.5"
       >
-        {columns.map((c) => (
-          <button
-            key={c.key}
-            disabled={!c.sortable}
-            onClick={() => c.sortable && onSort(c.key)}
-            className={clsx(
-              "flex items-center gap-0.5 truncate text-2xs font-semibold uppercase tracking-wide",
-              c.align === "right" && "justify-end",
-              c.sortable ? "hover:text-content" : "cursor-default",
-              sortKey === c.key ? "text-accent" : "text-content-subtle",
+        {columns.map((c, i) => (
+          <div key={c.key} data-col className="relative flex min-w-0 items-center">
+            <button
+              disabled={!c.sortable}
+              onClick={() => c.sortable && onSort(c.key)}
+              className={clsx(
+                "flex min-w-0 flex-1 items-center gap-0.5 truncate text-2xs font-semibold uppercase tracking-wide",
+                c.align === "right" && "justify-end",
+                c.sortable ? "hover:text-content" : "cursor-default",
+                sortKey === c.key ? "text-accent" : "text-content-subtle",
+              )}
+            >
+              <span className="truncate">{c.label}</span>
+              {sortKey === c.key && <ChevronDown size={11} className="shrink-0" />}
+            </button>
+            {i < columns.length - 1 && (
+              <div
+                onMouseDown={(e) => startResize(e, c.key)}
+                onClick={(e) => e.stopPropagation()}
+                onDoubleClick={() => resetCol(c.key)}
+                title="拖动调整列宽 · 双击重置"
+                className="group absolute right-0 top-1/2 z-20 flex h-5 w-2.5 -translate-y-1/2 cursor-col-resize items-center justify-end"
+              >
+                <div className="h-3.5 w-px bg-border transition-colors group-hover:bg-accent" />
+              </div>
             )}
-          >
-            <span className="truncate">{c.label}</span>
-            {sortKey === c.key && <ChevronDown size={11} className="shrink-0" />}
-          </button>
+          </div>
         ))}
       </div>
 

@@ -6,8 +6,6 @@ import { deleteVenue, getVenue } from "@/db/repositories/venues";
 import type { Venue, VenueKind } from "@/db/types";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
-import { itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
 import { VenueForm } from "./VenueForm";
 import { VenueDetail } from "./VenuesPage";
@@ -29,23 +27,21 @@ export function VenueItemPage({ kind }: { kind: VenueKind }) {
   useEffect(() => {
     if (!id) return;
     setLoaded(false);
+    setV(null); // drop the previous record so its title can't flash in the breadcrumb
     getVenue(id).then((rec) => {
       setV(rec);
       setLoaded(true);
-      if (rec) useTabs.getState().setTitle(itemTabId(section, id), nameOf(rec));
     });
   }, [id, tick, section]);
 
-  if (loaded && !v)
-    return <ItemGone listHref={base} tabId={id ? itemTabId(section, id) : undefined} />;
+  if (loaded && !v) return <ItemGone listHref={base} />;
   if (!v) return null;
 
   const remove = async () => {
     if (await confirmDialog(t("vform.confirmDelete", { name: v.name }))) {
       await deleteVenue(v.id);
-      const next = useTabs.getState().closeTab(itemTabId(section, v.id));
       useRefresh.getState().bump();
-      navigate(next ?? base);
+      navigate(base);
     }
   };
 

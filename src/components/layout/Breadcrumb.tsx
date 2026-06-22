@@ -1,32 +1,25 @@
-import { Fragment } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { useBreadcrumb, type Crumb } from "@/store/breadcrumb";
 
-export interface Crumb {
-  label: string;
-  href?: string;
-}
+export type { Crumb };
 
-/** A slim navigation path shown at the top of an item page: section › record. */
+/**
+ * Headless: an item page declares its path (section › record) and this publishes
+ * it to the breadcrumb store so the top bar renders it. Renders nothing itself —
+ * the path now lives in the wolai-style top bar, not under the page.
+ */
 export function Breadcrumb({ trail }: { trail: Crumb[] }) {
-  const navigate = useNavigate();
-  return (
-    <div className="flex items-center gap-1 border-b border-border bg-panel px-4 py-1.5 text-2xs">
-      {trail.map((c, i) => (
-        <Fragment key={i}>
-          {i > 0 && <ChevronRight size={11} className="shrink-0 text-content-subtle" />}
-          {c.href && i < trail.length - 1 ? (
-            <button
-              onClick={() => navigate(c.href!)}
-              className="shrink-0 text-content-subtle transition-colors hover:text-content"
-            >
-              {c.label}
-            </button>
-          ) : (
-            <span className="truncate text-content-muted">{c.label}</span>
-          )}
-        </Fragment>
-      ))}
-    </div>
-  );
+  const { pathname } = useLocation();
+  const publish = useBreadcrumb((s) => s.publish);
+  const clear = useBreadcrumb((s) => s.clear);
+  const sig = JSON.stringify(trail);
+
+  useEffect(() => {
+    publish(pathname, trail);
+    return () => clear(pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, sig]);
+
+  return null;
 }

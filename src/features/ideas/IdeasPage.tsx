@@ -30,8 +30,7 @@ import { formatDate } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
 import { arrange, cmpDesc, cmpStr, useListView } from "@/lib/listview";
-import { itemTab, itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
+import { itemHref } from "@/lib/tabs";
 import { useRefresh } from "@/store/refresh";
 import { IdeaForm } from "./IdeaForm";
 import { IdeaLogForm } from "./IdeaLogForm";
@@ -188,17 +187,11 @@ export function IdeasPage() {
       return next;
     });
 
-  const openItem = (rid: string) => {
-    const x = items.find((i) => i.id === rid);
-    const tab = itemTab("ideas", rid, x?.title ?? "");
-    useTabs.getState().openTab(tab);
-    navigate(tab.href);
-  };
+  const openItem = (rid: string) => navigate(itemHref("ideas", rid));
 
   const remove = async (x: Idea) => {
     if (await confirmDialog(t("idea.confirmDelete", { title: x.title }))) {
       await deleteIdea(x.id);
-      useTabs.getState().closeTab(itemTabId("ideas", x.id));
       useRefresh.getState().bump();
       if (id === x.id) navigate("/ideas");
     }
@@ -235,6 +228,7 @@ export function IdeasPage() {
         <div className="flex min-h-0 flex-1">
           <div className="min-w-0 flex-1 overflow-auto">
             <DataTable
+              storageKey="ideas"
               columns={columns}
               sections={sections}
               sortKey={view.sort}

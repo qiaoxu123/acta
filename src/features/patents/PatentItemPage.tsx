@@ -6,8 +6,6 @@ import { deletePatent, getPatent } from "@/db/repositories/patents";
 import type { Patent } from "@/db/types";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
-import { itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
 import { PatentForm } from "./PatentForm";
 import { PatentDetail } from "./PatentsPage";
@@ -25,23 +23,21 @@ export function PatentItemPage() {
   useEffect(() => {
     if (!id) return;
     setLoaded(false);
+    setP(null); // drop the previous record so its title can't flash in the breadcrumb
     getPatent(id).then((rec) => {
       setP(rec);
       setLoaded(true);
-      if (rec) useTabs.getState().setTitle(itemTabId("patents", id), rec.title);
     });
   }, [id, tick]);
 
-  if (loaded && !p)
-    return <ItemGone listHref="/patents" tabId={id ? itemTabId("patents", id) : undefined} />;
+  if (loaded && !p) return <ItemGone listHref="/patents" />;
   if (!p) return null;
 
   const remove = async () => {
     if (await confirmDialog(t("pat.confirmDelete", { title: p.title }))) {
       await deletePatent(p.id);
-      const next = useTabs.getState().closeTab(itemTabId("patents", p.id));
       useRefresh.getState().bump();
-      navigate(next ?? "/patents");
+      navigate("/patents");
     }
   };
 

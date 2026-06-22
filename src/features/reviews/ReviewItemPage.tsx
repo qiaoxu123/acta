@@ -6,8 +6,6 @@ import { deleteManuscript, getManuscript } from "@/db/repositories/reviews";
 import type { ReviewedManuscript } from "@/db/types";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
-import { itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
 import { ManuscriptForm } from "./ManuscriptForm";
 import { ManuscriptDetail } from "./ManuscriptDetail";
@@ -25,23 +23,21 @@ export function ReviewItemPage() {
   useEffect(() => {
     if (!id) return;
     setLoaded(false);
+    setM(null); // drop the previous record so its title can't flash in the breadcrumb
     getManuscript(id).then((rec) => {
       setM(rec);
       setLoaded(true);
-      if (rec) useTabs.getState().setTitle(itemTabId("reviews", id), rec.title);
     });
   }, [id, tick]);
 
-  if (loaded && !m)
-    return <ItemGone listHref="/reviews" tabId={id ? itemTabId("reviews", id) : undefined} />;
+  if (loaded && !m) return <ItemGone listHref="/reviews" />;
   if (!m) return null;
 
   const remove = async () => {
     if (await confirmDialog(t("rev.confirmDelete", { title: m.title }))) {
       await deleteManuscript(m.id);
-      const next = useTabs.getState().closeTab(itemTabId("reviews", m.id));
       useRefresh.getState().bump();
-      navigate(next ?? "/reviews");
+      navigate("/reviews");
     }
   };
 

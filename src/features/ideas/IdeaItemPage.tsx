@@ -6,8 +6,6 @@ import { deleteIdea, getIdea } from "@/db/repositories/ideas";
 import type { Idea } from "@/db/types";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
-import { itemTabId } from "@/lib/tabs";
-import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
 import { IdeaForm } from "./IdeaForm";
 import { IdeaDetail } from "./IdeasPage";
@@ -25,23 +23,21 @@ export function IdeaItemPage() {
   useEffect(() => {
     if (!id) return;
     setLoaded(false);
+    setX(null); // drop the previous record so its title can't flash in the breadcrumb
     getIdea(id).then((rec) => {
       setX(rec);
       setLoaded(true);
-      if (rec) useTabs.getState().setTitle(itemTabId("ideas", id), rec.title);
     });
   }, [id, tick]);
 
-  if (loaded && !x)
-    return <ItemGone listHref="/ideas" tabId={id ? itemTabId("ideas", id) : undefined} />;
+  if (loaded && !x) return <ItemGone listHref="/ideas" />;
   if (!x) return null;
 
   const remove = async () => {
     if (await confirmDialog(t("idea.confirmDelete", { title: x.title }))) {
       await deleteIdea(x.id);
-      const next = useTabs.getState().closeTab(itemTabId("ideas", x.id));
       useRefresh.getState().bump();
-      navigate(next ?? "/ideas");
+      navigate("/ideas");
     }
   };
 
