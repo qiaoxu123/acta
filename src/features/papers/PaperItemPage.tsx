@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Toolbar } from "@/components/layout/Toolbar";
+import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { ItemGone } from "@/components/layout/ItemGone";
 import { deletePaper, getPaper } from "@/db/repositories/papers";
 import type { Paper } from "@/db/types";
@@ -47,7 +47,7 @@ export function PaperItemPage() {
 
   return (
     <>
-      <Toolbar title={p.title} subtitle={p.target_venue ?? undefined} />
+      <Breadcrumb trail={[{ label: t("nav.papers"), href: "/papers" }, { label: p.title }]} />
       <div className="min-h-0 flex-1 overflow-y-auto">
         <PaperDetail paper={p} t={t} onEdit={() => setForm(true)} onDelete={remove} />
       </div>

@@ -52,6 +52,14 @@ export interface VenueEdition extends SyncFields {
 }
 
 export type ReviewerRole = "reviewer" | "meta" | "pc";
+/** What kind of object the review is for — drives sidebar/list classification. */
+export type ReviewType =
+  | "journal"
+  | "conference"
+  | "grant"
+  | "thesis"
+  | "book"
+  | "other";
 export type ManuscriptStatus =
   | "invited"
   | "accepted"
@@ -66,8 +74,12 @@ export interface ReviewedManuscript extends SyncFields {
   title: string;
   manuscript_id: string | null;
   role: ReviewerRole;
+  review_type: ReviewType;
   status: ManuscriptStatus;
   review_url: string | null;
+  agree_url: string | null;
+  decline_url: string | null;
+  unavailable_url: string | null;
   notes: string | null;
   archived_at: string | null;
 }
@@ -183,6 +195,57 @@ export interface PaperSubmission extends SyncFields {
   reviewer_summary: string | null;
 }
 
+/** Research idea / engineering-progress tracker. */
+export type IdeaCategory =
+  | "idea"
+  | "experiment"
+  | "course"
+  | "hardware"
+  | "simulation"
+  | "paper"
+  | "infra";
+export type IdeaStatus =
+  | "spark"
+  | "exploring"
+  | "validated"
+  | "building"
+  | "done"
+  | "paused"
+  | "dropped"
+  | "merged";
+
+export interface Idea extends SyncFields {
+  title: string;
+  summary: string | null;
+  category: IdeaCategory;
+  status: IdeaStatus;
+  priority: number;
+  repo_url: string | null;
+  tags: string | null;
+  notes: string | null;
+  archived_at: string | null;
+}
+
+export type IdeaLogKind = "note" | "finding" | "decision" | "progress";
+
+export interface IdeaLog extends SyncFields {
+  idea_id: string;
+  kind: IdeaLogKind;
+  body: string;
+}
+
+/** Low-friction brainstorm capture: a flash of inspiration or an observed
+ *  problem, which may later be promoted into a tracked Idea. */
+export type SparkKind = "spark" | "problem";
+
+export interface Spark extends SyncFields {
+  kind: SparkKind;
+  body: string;
+  tags: string | null;
+  promoted_to: string | null;
+  archived_at: string | null;
+}
+
 export interface Task extends SyncFields {
   title: string;
   linked_type: string | null;
@@ -202,6 +265,9 @@ export const ALL_TABLES = [
   "paper_submissions",
   "patents",
   "projects",
+  "ideas",
+  "idea_logs",
+  "sparks",
   "tasks",
 ] as const;
 export type TableName = (typeof ALL_TABLES)[number];

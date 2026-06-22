@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Toolbar } from "@/components/layout/Toolbar";
+import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { ItemGone } from "@/components/layout/ItemGone";
 import { deleteVenue, getVenue } from "@/db/repositories/venues";
 import type { Venue, VenueKind } from "@/db/types";
@@ -51,7 +51,9 @@ export function VenueItemPage({ kind }: { kind: VenueKind }) {
 
   return (
     <>
-      <Toolbar title={nameOf(v)} subtitle={t(`kind.${v.kind}`)} />
+      <Breadcrumb
+        trail={[{ label: t(`nav.${section}`), href: base }, { label: nameOf(v) }]}
+      />
       <div className="min-h-0 flex-1 overflow-y-auto">
         <VenueDetail venue={v} t={t} onEdit={() => setForm(true)} onDelete={remove} />
       </div>

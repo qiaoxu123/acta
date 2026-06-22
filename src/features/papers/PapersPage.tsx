@@ -271,7 +271,7 @@ export function PapersPage() {
         open={form.open}
         existing={form.edit}
         onClose={() => setForm({ open: false })}
-        onSaved={(savedId) => navigate(`/papers/${savedId}`)}
+        onSaved={(savedId) => navigate(`/papers/item/${savedId}`)}
       />
     </>
   );

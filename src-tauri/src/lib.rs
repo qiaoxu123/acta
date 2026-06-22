@@ -29,6 +29,30 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0004_review_url.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 5,
+            description: "review object type on reviewed_manuscripts",
+            sql: include_str!("../migrations/0005_review_type.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 6,
+            description: "research idea tracker: ideas + idea_logs",
+            sql: include_str!("../migrations/0006_ideas.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 7,
+            description: "sparks: brainstorm / problem inbox",
+            sql: include_str!("../migrations/0007_sparks.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 8,
+            description: "review invitation action links (agree/decline/unavailable)",
+            sql: include_str!("../migrations/0008_review_invite_links.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

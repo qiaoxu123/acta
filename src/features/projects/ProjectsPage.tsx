@@ -206,7 +206,7 @@ export function ProjectsPage({ category }: { category: ProjectCategory }) {
         existing={form.edit}
         defaultCategory={category}
         onClose={() => setForm({ open: false })}
-        onSaved={(savedId) => navigate(`${base}/${savedId}`)}
+        onSaved={(savedId) => navigate(`${base}/item/${savedId}`)}
       />
     </>
   );

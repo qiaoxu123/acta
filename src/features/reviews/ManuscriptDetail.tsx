@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { Archive, ArchiveRestore, ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  Check,
+  Clock,
+  ExternalLink,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/controls";
 import { Badge, CountdownBadge } from "@/components/ui/misc";
 import {
@@ -67,6 +77,7 @@ export function ManuscriptDetail({
         <div className="min-w-0">
           <h2 className="text-sm font-semibold leading-snug text-content">{manuscript.title}</h2>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            <Badge tone="neutral">{t(`rtype.${manuscript.review_type}`)}</Badge>
             <Badge tone="accent">{t(`role.${manuscript.role}`)}</Badge>
             <Badge>{t(`mstatus.${manuscript.status}`)}</Badge>
             {archived && <Badge tone="neutral">{t("lv.archivedBadge")}</Badge>}
@@ -77,6 +88,42 @@ export function ManuscriptDetail({
               <span className="text-2xs text-content-subtle">#{manuscript.manuscript_id}</span>
             )}
           </div>
+          {/* Invitation reply links — respond without reopening the mailbox. */}
+          {manuscript.status === "invited" &&
+            (manuscript.agree_url || manuscript.decline_url || manuscript.unavailable_url) && (
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                {manuscript.agree_url && (
+                  <a
+                    href={manuscript.agree_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md border border-ok/30 bg-ok/10 px-2 py-1 text-2xs font-medium text-ok hover:bg-ok/20"
+                  >
+                    <Check size={12} /> {t("rev.agree")}
+                  </a>
+                )}
+                {manuscript.decline_url && (
+                  <a
+                    href={manuscript.decline_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-2xs font-medium text-content-muted hover:text-content"
+                  >
+                    <X size={12} /> {t("rev.decline")}
+                  </a>
+                )}
+                {manuscript.unavailable_url && (
+                  <a
+                    href={manuscript.unavailable_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-2xs font-medium text-content-muted hover:text-content"
+                  >
+                    <Clock size={12} /> {t("rev.unavailable")}
+                  </a>
+                )}
+              </div>
+            )}
           {manuscript.review_url && (
             <a
               href={manuscript.review_url}

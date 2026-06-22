@@ -221,7 +221,7 @@ export function VenuesPage({ kind }: { kind: "journal" | "conference" }) {
         existing={venueForm.edit}
         defaultKind={kind}
         onClose={() => setVenueForm({ open: false })}
-        onSaved={(savedId) => navigate(`${base}/${savedId}`)}
+        onSaved={(savedId) => navigate(`${base}/item/${savedId}`)}
       />
     </>
   );

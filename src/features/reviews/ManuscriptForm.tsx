@@ -6,11 +6,17 @@ import {
   updateManuscript,
   type ManuscriptInput,
 } from "@/db/repositories/reviews";
-import type { ManuscriptStatus, ReviewedManuscript, ReviewerRole } from "@/db/types";
+import type {
+  ManuscriptStatus,
+  ReviewedManuscript,
+  ReviewerRole,
+  ReviewType,
+} from "@/db/types";
 import { useI18n } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
 
 const ROLES: ReviewerRole[] = ["reviewer", "meta", "pc"];
+const TYPES: ReviewType[] = ["journal", "conference", "grant", "thesis", "book", "other"];
 const STATUSES: ManuscriptStatus[] = [
   "invited",
   "accepted",
@@ -27,8 +33,12 @@ function empty(): ManuscriptInput {
     title: "",
     manuscript_id: "",
     role: "reviewer",
+    review_type: "journal",
     status: "invited",
     review_url: "",
+    agree_url: "",
+    decline_url: "",
+    unavailable_url: "",
     notes: "",
   };
 }
@@ -59,8 +69,12 @@ export function ManuscriptForm({
             title: existing.title,
             manuscript_id: existing.manuscript_id ?? "",
             role: existing.role,
+            review_type: existing.review_type,
             status: existing.status,
             review_url: existing.review_url ?? "",
+            agree_url: existing.agree_url ?? "",
+            decline_url: existing.decline_url ?? "",
+            unavailable_url: existing.unavailable_url ?? "",
             notes: existing.notes ?? "",
           }
         : empty(),
@@ -121,7 +135,19 @@ export function ManuscriptForm({
             />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
+          <Field label={t("mform.reviewType")}>
+            <Select
+              value={form.review_type}
+              onChange={(e) => set("review_type", e.target.value as ReviewType)}
+            >
+              {TYPES.map((rt) => (
+                <option key={rt} value={rt}>
+                  {t(`rtype.${rt}`)}
+                </option>
+              ))}
+            </Select>
+          </Field>
           <Field label={t("mform.role")}>
             <Select value={form.role} onChange={(e) => set("role", e.target.value as ReviewerRole)}>
               {ROLES.map((r) => (
@@ -151,6 +177,20 @@ export function ManuscriptForm({
             onChange={(e) => set("review_url", e.target.value)}
           />
         </Field>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label={t("mform.agreeUrl")}>
+            <TextInput value={form.agree_url ?? ""} onChange={(e) => set("agree_url", e.target.value)} />
+          </Field>
+          <Field label={t("mform.declineUrl")}>
+            <TextInput value={form.decline_url ?? ""} onChange={(e) => set("decline_url", e.target.value)} />
+          </Field>
+          <Field label={t("mform.unavailableUrl")}>
+            <TextInput
+              value={form.unavailable_url ?? ""}
+              onChange={(e) => set("unavailable_url", e.target.value)}
+            />
+          </Field>
+        </div>
         <Field label={t("common.notes")}>
           <Textarea rows={3} value={form.notes ?? ""} onChange={(e) => set("notes", e.target.value)} />
         </Field>

@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.7.0] - 2026-06-21
+
+Research-idea tracker with a git-graph evolution timeline.
+
+### Features
+
+- **Ideas module** (`src/features/ideas/`, `ideas` + `idea_logs` tables,
+  migration v6): capture research ideas and track them through a lifecycle —
+  spark → exploring → validated → building → done / paused / dropped / merged —
+  so temporary ideas, research, rejection, merging, and engineering all live in
+  one place. Each idea carries a category (idea / experiment / course / hardware
+  / simulation / paper / engineering), priority, tags, a GitHub/code link, and
+  notes. New sidebar group "Research".
+- **Git-graph evolution timeline**: each idea has a discussion/progress log
+  rendered as a vertical git-graph — one coloured node per event (note = grey,
+  finding = blue, decision = amber diamond, progress = green), newest on top,
+  connected by a rail. Makes the thinking process (what was sparked, researched,
+  decided, rejected) visible at a glance.
+- Ideas open in tabs and integrate with the breadcrumb, dock, and sync layers
+  like every other module; the six seeded research directions (VLM benchmarking,
+  VLN, quadruped robotics, 3D reconstruction, 3D delivery sim, traffic-offloading
+  paper) ship pre-classified.
+- **Sparks / brainstorm inbox** (`src/features/sparks/`, `sparks` table,
+  migration v7): a low-friction capture board for flashes of inspiration and
+  observed problems — a quick-add bar (toggle spark/problem, type, Enter) and two
+  columns. **Promote to idea** turns a keeper into a tracked idea (status: spark)
+  and opens it; the rest stay as a well of future inspiration. New "Sparks"
+  sidebar entry under Research.
+- **Review invitation action links** (migration v8): reviews store the
+  Agree / Decline / Unavailable reply links from the invitation email plus the
+  review-system link. While a review is "invited" the detail shows one-click
+  reply buttons; once accepted it shows "open review system" — so invitations can
+  be answered without reopening the mailbox.
+- **Window: double-click the tab bar (or sidebar header) to zoom/maximize**
+  (the overlay title bar wasn't forwarding macOS's native double-click).
+
+### Design Rationale
+
+- The log is modelled as typed events rather than free text so the timeline can
+  colour-code and (later) filter by what kind of thinking happened. The idea's
+  own status captures the coarse lifecycle; the log captures the fine-grained
+  story.
+
 ## [0.6.0] - 2026-06-21
 
 Zotero-style tabbed workspace, dockable preview panel, and review-system links.
@@ -36,6 +79,17 @@ Zotero-style tabbed workspace, dockable preview panel, and review-system links.
   favor of this; its dock code remains dormant and can be re-enabled if wanted.
 - **Safer "close others"**: right-clicking a tab now asks for confirmation
   before closing the rest, instead of silently wiping them.
+- **Back / forward buttons** in the tab bar navigate the in-app history.
+- **Dashboard items open in tabs**: clicking a dated item on the dashboard (and
+  saving a new record) now opens it in a tab instead of the old in-list preview.
+- **Breadcrumb** at the top of every item tab (section › record) for location
+  context; the section crumb links back to the list.
+- **Review type** (`review_type`, migration v5): each review is classified as
+  journal / conference / grant / thesis / book / other — shown as a column and
+  badge, and available as a grouping. Existing rows back-fill to "journal".
+- **Top-bar alignment**: the tab bar drops into the same band as the sidebar
+  "Acta" header (both below the overlaid traffic lights); item pages no longer
+  double-render the title (the detail header is the single title).
 
 ### Robustness (adversarial review)
 

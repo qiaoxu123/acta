@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Toolbar } from "@/components/layout/Toolbar";
+import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { ItemGone } from "@/components/layout/ItemGone";
 import { deleteProject, getProject } from "@/db/repositories/projects";
 import type { Project, ProjectCategory } from "@/db/types";
@@ -49,7 +49,9 @@ export function ProjectItemPage({ category }: { category: ProjectCategory }) {
 
   return (
     <>
-      <Toolbar title={p.name} subtitle={p.program ?? undefined} />
+      <Breadcrumb
+        trail={[{ label: t(`nav.projects.${category}`), href: base }, { label: p.name }]}
+      />
       <div className="min-h-0 flex-1 overflow-y-auto">
         <ProjectDetail project={p} t={t} onEdit={() => setForm(true)} onDelete={remove} />
       </div>

@@ -2,58 +2,58 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { ItemGone } from "@/components/layout/ItemGone";
-import { deletePatent, getPatent } from "@/db/repositories/patents";
-import type { Patent } from "@/db/types";
+import { deleteIdea, getIdea } from "@/db/repositories/ideas";
+import type { Idea } from "@/db/types";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
 import { itemTabId } from "@/lib/tabs";
 import { useTabs } from "@/store/tabs";
 import { useRefresh } from "@/store/refresh";
-import { PatentForm } from "./PatentForm";
-import { PatentDetail } from "./PatentsPage";
+import { IdeaForm } from "./IdeaForm";
+import { IdeaDetail } from "./IdeasPage";
 
-/** Dedicated full-width management tab for one patent. */
-export function PatentItemPage() {
+/** Dedicated full-width management tab for one research idea. */
+export function IdeaItemPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useI18n();
   const tick = useRefresh((s) => s.tick);
-  const [p, setP] = useState<Patent | null>(null);
+  const [x, setX] = useState<Idea | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [form, setForm] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     setLoaded(false);
-    getPatent(id).then((rec) => {
-      setP(rec);
+    getIdea(id).then((rec) => {
+      setX(rec);
       setLoaded(true);
-      if (rec) useTabs.getState().setTitle(itemTabId("patents", id), rec.title);
+      if (rec) useTabs.getState().setTitle(itemTabId("ideas", id), rec.title);
     });
   }, [id, tick]);
 
-  if (loaded && !p)
-    return <ItemGone listHref="/patents" tabId={id ? itemTabId("patents", id) : undefined} />;
-  if (!p) return null;
+  if (loaded && !x)
+    return <ItemGone listHref="/ideas" tabId={id ? itemTabId("ideas", id) : undefined} />;
+  if (!x) return null;
 
   const remove = async () => {
-    if (await confirmDialog(t("pat.confirmDelete", { title: p.title }))) {
-      await deletePatent(p.id);
-      const next = useTabs.getState().closeTab(itemTabId("patents", p.id));
+    if (await confirmDialog(t("idea.confirmDelete", { title: x.title }))) {
+      await deleteIdea(x.id);
+      const next = useTabs.getState().closeTab(itemTabId("ideas", x.id));
       useRefresh.getState().bump();
-      navigate(next ?? "/patents");
+      navigate(next ?? "/ideas");
     }
   };
 
   return (
     <>
-      <Breadcrumb trail={[{ label: t("nav.patents"), href: "/patents" }, { label: p.title }]} />
+      <Breadcrumb trail={[{ label: t("nav.ideas"), href: "/ideas" }, { label: x.title }]} />
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <PatentDetail patent={p} t={t} onEdit={() => setForm(true)} onDelete={remove} />
+        <IdeaDetail idea={x} t={t} onEdit={() => setForm(true)} onDelete={remove} />
       </div>
-      <PatentForm
+      <IdeaForm
         open={form}
-        existing={p}
+        existing={x}
         onClose={() => setForm(false)}
         onSaved={() => useRefresh.getState().bump()}
       />

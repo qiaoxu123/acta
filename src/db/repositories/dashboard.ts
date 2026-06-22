@@ -84,7 +84,7 @@ export async function getAgenda(): Promise<AgendaItem[]> {
           kind: label === "Conference" ? "event" : "deadline",
           label,
           title: name,
-          href: `/${route}/${e.venue_id}`,
+          href: `/${route}/item/${e.venue_id}`,
         });
     };
     push(e.abstract_deadline, "Abstract deadline");
@@ -103,7 +103,7 @@ export async function getAgenda(): Promise<AgendaItem[]> {
       kind: "review",
       label: "Review due",
       title: r.title,
-      href: `/reviews/${r.parent_id}`,
+      href: `/reviews/item/${r.parent_id}`,
     });
 
   for (const s of revisions)
@@ -114,7 +114,7 @@ export async function getAgenda(): Promise<AgendaItem[]> {
       kind: "revision",
       label: "Revision due",
       title: s.title,
-      href: `/papers/${s.parent_id}`,
+      href: `/papers/item/${s.parent_id}`,
     });
 
   for (const t of tasks)
@@ -148,7 +148,7 @@ export async function getAgenda(): Promise<AgendaItem[]> {
         kind: "project",
         label: "Project deadline",
         title: p.name,
-        href: `/projects/${p.category}/${p.id}`,
+        href: `/projects/${p.category}/item/${p.id}`,
       });
   } catch {
     /* projects table absent on service-only DBs */

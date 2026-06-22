@@ -179,7 +179,7 @@ export function PatentsPage() {
         open={form.open}
         existing={form.edit}
         onClose={() => setForm({ open: false })}
-        onSaved={(savedId) => navigate(`/patents/${savedId}`)}
+        onSaved={(savedId) => navigate(`/patents/item/${savedId}`)}
       />
     </>
   );

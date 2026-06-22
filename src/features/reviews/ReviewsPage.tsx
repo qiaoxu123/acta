@@ -36,9 +36,11 @@ const STATUS_ORDER: ManuscriptStatus[] = [
 ];
 const ACTIVE_STATUSES = ["invited", "accepted", "in_progress"];
 const ROLE_ORDER = ["reviewer", "meta", "pc"];
+const TYPE_ORDER = ["journal", "conference", "grant", "thesis", "book", "other"];
 
 const GROUP_OPTIONS: Option[] = [
   { value: "status", labelKey: "lv.group.status" },
+  { value: "type", labelKey: "lv.group.reviewType" },
   { value: "venue", labelKey: "lv.group.venue" },
   { value: "role", labelKey: "lv.group.role" },
 ];
@@ -102,6 +104,12 @@ export function ReviewsPage() {
     if (key === "venue") return { key: m.venue_name || "—", label: m.venue_name || "—" };
     if (key === "role")
       return { key: m.role, label: t(`role.${m.role}`), order: ROLE_ORDER.indexOf(m.role) };
+    if (key === "type")
+      return {
+        key: m.review_type,
+        label: t(`rtype.${m.review_type}`),
+        order: TYPE_ORDER.indexOf(m.review_type),
+      };
     return { key: m.status, label: t(`mstatus.${m.status}`), order: STATUS_ORDER.indexOf(m.status) };
   };
 
@@ -132,9 +140,15 @@ export function ReviewsPage() {
       render: (m) => <span className="truncate font-medium text-content">{m.title}</span>,
     },
     {
+      key: "type",
+      label: t("col.reviewType"),
+      width: "84px",
+      render: (m) => <Badge tone="neutral">{t(`rtype.${m.review_type}`)}</Badge>,
+    },
+    {
       key: "venue",
       label: t("col.venue"),
-      width: "120px",
+      width: "112px",
       sortable: true,
       render: (m) => <span className="truncate text-content-muted">{m.venue_name || "—"}</span>,
     },
@@ -268,7 +282,7 @@ export function ReviewsPage() {
         open={form.open}
         existing={form.edit}
         onClose={() => setForm({ open: false })}
-        onSaved={(savedId) => navigate(`/reviews/${savedId}`)}
+        onSaved={(savedId) => navigate(`/reviews/item/${savedId}`)}
       />
     </>
   );

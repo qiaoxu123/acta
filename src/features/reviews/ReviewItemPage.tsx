@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Toolbar } from "@/components/layout/Toolbar";
+import { Breadcrumb } from "@/components/layout/Breadcrumb";
 import { ItemGone } from "@/components/layout/ItemGone";
 import { deleteManuscript, getManuscript } from "@/db/repositories/reviews";
 import type { ReviewedManuscript } from "@/db/types";
@@ -47,7 +47,7 @@ export function ReviewItemPage() {
 
   return (
     <>
-      <Toolbar title={m.title} subtitle={m.venue_name ?? undefined} />
+      <Breadcrumb trail={[{ label: t("nav.reviews"), href: "/reviews" }, { label: m.title }]} />
       <div className="min-h-0 flex-1 overflow-y-auto">
         <ManuscriptDetail manuscript={m} t={t} onEdit={() => setForm(true)} onDelete={remove} />
       </div>

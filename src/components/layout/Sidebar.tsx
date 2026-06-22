@@ -8,6 +8,8 @@ import {
   Landmark,
   LayoutDashboard,
   Library,
+  Lightbulb,
+  Sparkles,
   Languages,
   Moon,
   ScrollText,
@@ -16,11 +18,19 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { applyTheme, getStoredTheme, type Theme } from "@/lib/theme";
+import { onTitlebarDoubleClick } from "@/lib/titlebar";
 import { useI18n } from "@/lib/i18n";
 
 const TOP = { to: "/", key: "nav.dashboard", icon: LayoutDashboard, end: true };
 
 const GROUPS = [
+  {
+    label: "side.research",
+    items: [
+      { to: "/sparks", key: "nav.sparks", icon: Sparkles },
+      { to: "/ideas", key: "nav.ideas", icon: Lightbulb },
+    ],
+  },
   {
     label: "side.results",
     items: [
@@ -67,7 +77,11 @@ export function Sidebar() {
   return (
     <aside className="flex h-full w-full flex-col border-r border-border bg-surface-sunken">
       {/* Top padding clears the overlaid macOS traffic-light buttons. */}
-      <div data-tauri-drag-region className="flex items-center gap-2 px-4 pb-2.5 pt-8">
+      <div
+        data-tauri-drag-region
+        onDoubleClick={onTitlebarDoubleClick}
+        className="flex items-center gap-2 px-4 pb-2.5 pt-8"
+      >
         <span className="grid h-6 w-6 place-items-center rounded bg-accent text-accent-fg text-sm font-bold">
           A
         </span>

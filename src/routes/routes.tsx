@@ -11,6 +11,9 @@ import { PatentsPage } from "@/features/patents/PatentsPage";
 import { PatentItemPage } from "@/features/patents/PatentItemPage";
 import { ProjectsPage } from "@/features/projects/ProjectsPage";
 import { ProjectItemPage } from "@/features/projects/ProjectItemPage";
+import { IdeasPage } from "@/features/ideas/IdeasPage";
+import { IdeaItemPage } from "@/features/ideas/IdeaItemPage";
+import { SparksPage } from "@/features/sparks/SparksPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 
 export const routes: RouteObject[] = [
@@ -43,6 +46,10 @@ export const routes: RouteObject[] = [
       { path: "projects/horizontal", element: <ProjectsPage category="horizontal" /> },
       { path: "projects/horizontal/item/:id", element: <ProjectItemPage category="horizontal" /> },
       { path: "projects/horizontal/:id", element: <ProjectsPage category="horizontal" /> },
+      { path: "sparks", element: <SparksPage /> },
+      { path: "ideas", element: <IdeasPage /> },
+      { path: "ideas/item/:id", element: <IdeaItemPage /> },
+      { path: "ideas/:id", element: <IdeasPage /> },
       { path: "settings", element: <SettingsPage /> },
     ],
   },

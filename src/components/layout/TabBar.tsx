@@ -4,18 +4,23 @@ import {
   Building2,
   BookText,
   CalendarClock,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   Landmark,
   LayoutDashboard,
   Library,
+  Lightbulb,
   ScrollText,
   Settings,
+  Sparkles,
   X,
   type LucideIcon,
 } from "lucide-react";
 import { tabLabel, type Tab } from "@/lib/tabs";
 import { useTabs } from "@/store/tabs";
 import { confirmDialog } from "@/lib/confirm";
+import { onTitlebarDoubleClick } from "@/lib/titlebar";
 import { useI18n } from "@/lib/i18n";
 
 const SECTION_ICON: Record<string, LucideIcon> = {
@@ -25,6 +30,8 @@ const SECTION_ICON: Record<string, LucideIcon> = {
   papers: FileText,
   patents: ScrollText,
   reviews: Library,
+  sparks: Sparkles,
+  ideas: Lightbulb,
   "projects/vertical": Landmark,
   "projects/horizontal": Building2,
   settings: Settings,
@@ -50,17 +57,37 @@ export function TabBar() {
     if (next) navigate(next);
   };
 
+  const navBtn =
+    "rounded p-1 text-content-subtle transition-colors hover:bg-surface hover:text-content";
+
   return (
+    // Top padding (pt-8) sinks the bar below the overlaid traffic lights so the
+    // tabs line up with the sidebar "Acta" header; tabs bottom-align to the
+    // divider for the browser-tab look.
     <div
       data-tauri-drag-region
-      className="flex items-stretch gap-0.5 overflow-x-auto border-b border-border bg-surface-sunken px-1.5 pt-2.5"
+      onDoubleClick={onTitlebarDoubleClick}
+      className="flex items-end border-b border-border bg-surface-sunken pt-8"
     >
+      <div className="flex shrink-0 items-center gap-0.5 pb-1.5 pl-1.5 pr-1">
+        <button onClick={() => navigate(-1)} title={t("nav.back")} className={navBtn}>
+          <ChevronLeft size={15} />
+        </button>
+        <button onClick={() => navigate(1)} title={t("nav.forward")} className={navBtn}>
+          <ChevronRight size={15} />
+        </button>
+      </div>
+      <div
+        data-tauri-drag-region
+        className="flex flex-1 items-end gap-0.5 overflow-x-auto pr-1.5"
+      >
       {tabs.map((tab) => {
         const Icon = SECTION_ICON[tab.section];
         const active = tab.id === activeId;
         return (
           <div
             key={tab.id}
+            data-tab
             onClick={() => open(tab)}
             onAuxClick={(e) => e.button === 1 && tab.closable && close(e, tab)}
             onContextMenu={async (e) => {
@@ -94,6 +121,7 @@ export function TabBar() {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
