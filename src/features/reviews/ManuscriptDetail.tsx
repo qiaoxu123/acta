@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/controls";
 import { Badge, CountdownBadge } from "@/components/ui/misc";
+import { Ext } from "@/components/ui/Ext";
 import {
   archiveManuscript,
   deleteRound,
@@ -93,46 +94,38 @@ export function ManuscriptDetail({
             (manuscript.agree_url || manuscript.decline_url || manuscript.unavailable_url) && (
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 {manuscript.agree_url && (
-                  <a
+                  <Ext
                     href={manuscript.agree_url}
-                    target="_blank"
-                    rel="noreferrer"
                     className="inline-flex items-center gap-1 rounded-md border border-ok/30 bg-ok/10 px-2 py-1 text-2xs font-medium text-ok hover:bg-ok/20"
                   >
                     <Check size={12} /> {t("rev.agree")}
-                  </a>
+                  </Ext>
                 )}
                 {manuscript.decline_url && (
-                  <a
+                  <Ext
                     href={manuscript.decline_url}
-                    target="_blank"
-                    rel="noreferrer"
                     className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-2xs font-medium text-content-muted hover:text-content"
                   >
                     <X size={12} /> {t("rev.decline")}
-                  </a>
+                  </Ext>
                 )}
                 {manuscript.unavailable_url && (
-                  <a
+                  <Ext
                     href={manuscript.unavailable_url}
-                    target="_blank"
-                    rel="noreferrer"
                     className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-2xs font-medium text-content-muted hover:text-content"
                   >
                     <Clock size={12} /> {t("rev.unavailable")}
-                  </a>
+                  </Ext>
                 )}
               </div>
             )}
           {manuscript.review_url && (
-            <a
+            <Ext
               href={manuscript.review_url}
-              target="_blank"
-              rel="noreferrer"
               className="mt-2 inline-flex items-center gap-1 text-2xs text-accent hover:underline"
             >
               <ExternalLink size={12} /> {t("rev.openSystem")}
-            </a>
+            </Ext>
           )}
         </div>
         <div className="flex shrink-0 gap-1.5">

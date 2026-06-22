@@ -36,6 +36,7 @@ const STATUS_ORDER: ManuscriptStatus[] = [
 ];
 const ACTIVE_STATUSES = ["invited", "accepted", "in_progress"];
 const ROLE_ORDER = ["reviewer", "meta", "pc"];
+const EMPTY_SET = new Set<string>();
 const TYPE_ORDER = ["journal", "conference", "grant", "thesis", "book", "other"];
 
 const GROUP_OPTIONS: Option[] = [
@@ -252,7 +253,9 @@ export function ReviewsPage() {
               getId={(m) => m.id}
               selectedId={id}
               onSelect={openItem}
-              collapsed={collapsed}
+              // While searching, expand all groups so matches aren't hidden in a
+              // collapsed bucket (e.g. the large 已邀请 group).
+              collapsed={query.trim() ? EMPTY_SET : collapsed}
               onToggle={toggle}
               empty={
                 <p className="px-3 py-8 text-center text-2xs text-content-subtle">

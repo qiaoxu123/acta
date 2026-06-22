@@ -13,6 +13,7 @@ import { Toolbar } from "@/components/layout/Toolbar";
 import { DockPanel } from "@/components/layout/DockPanel";
 import { Button, TextInput } from "@/components/ui/controls";
 import { Badge, CountdownBadge } from "@/components/ui/misc";
+import { Ext } from "@/components/ui/Ext";
 import { ListControls } from "@/components/ui/ListControls";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import {
@@ -274,9 +275,9 @@ export function VenueDetail({
             {archived && <Badge tone="neutral">{t("lv.archivedBadge")}</Badge>}
             {venue.publisher && <span className="text-2xs text-content-subtle">{venue.publisher}</span>}
             {venue.url && (
-              <a href={venue.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-2xs text-accent hover:underline">
+              <Ext href={venue.url} className="inline-flex items-center gap-1 text-2xs text-accent hover:underline">
                 {t("common.website")} <ExternalLink size={11} />
-              </a>
+              </Ext>
             )}
           </div>
         </div>

@@ -15,6 +15,7 @@ import { Toolbar } from "@/components/layout/Toolbar";
 import { DockPanel } from "@/components/layout/DockPanel";
 import { Button, TextInput } from "@/components/ui/controls";
 import { Badge } from "@/components/ui/misc";
+import { Ext } from "@/components/ui/Ext";
 import { ListControls, type Option } from "@/components/ui/ListControls";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import {
@@ -336,14 +337,12 @@ export function IdeaDetail({
             </div>
           )}
           {idea.repo_url && (
-            <a
+            <Ext
               href={idea.repo_url}
-              target="_blank"
-              rel="noreferrer"
               className="mt-2 inline-flex items-center gap-1 text-2xs text-accent hover:underline"
             >
               <ExternalLink size={12} /> {t("idea.openRepo")}
-            </a>
+            </Ext>
           )}
         </div>
         <div className="flex shrink-0 gap-1.5">

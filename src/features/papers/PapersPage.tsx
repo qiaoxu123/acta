@@ -12,6 +12,7 @@ import { Toolbar } from "@/components/layout/Toolbar";
 import { DockPanel } from "@/components/layout/DockPanel";
 import { Button } from "@/components/ui/controls";
 import { Badge, CountdownBadge } from "@/components/ui/misc";
+import { Ext } from "@/components/ui/Ext";
 import { ListControls, type Option } from "@/components/ui/ListControls";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import {
@@ -346,14 +347,14 @@ export function PaperDetail({
 
       <div className="mt-2 flex flex-wrap gap-3">
         {paper.overleaf_url && (
-          <a href={paper.overleaf_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-2xs text-accent hover:underline">
+          <Ext href={paper.overleaf_url} className="inline-flex items-center gap-1 text-2xs text-accent hover:underline">
             {t("pap.draft")} <ExternalLink size={11} />
-          </a>
+          </Ext>
         )}
         {paper.repo_url && (
-          <a href={paper.repo_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-2xs text-accent hover:underline">
+          <Ext href={paper.repo_url} className="inline-flex items-center gap-1 text-2xs text-accent hover:underline">
             {t("pap.code")} <ExternalLink size={11} />
-          </a>
+          </Ext>
         )}
       </div>
 

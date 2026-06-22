@@ -36,6 +36,15 @@ Research-idea tracker with a git-graph evolution timeline.
 - **Window: double-click the tab bar (or sidebar header) to zoom/maximize**
   (the overlay title bar wasn't forwarding macOS's native double-click).
 
+### Fixes
+
+- **External links now actually open.** The webview ignores `target="_blank"`, so
+  every external link (review system, Overleaf, repos, venue site, idea repo,
+  invitation reply links) was dead. Added `tauri-plugin-opener` and route all
+  external links through it (`src/lib/external.ts`, `src/components/ui/Ext.tsx`).
+- **Searching reviews expands collapsed groups**, so matches inside the (default-
+  collapsed) 已邀请 bucket are no longer hidden.
+
 ### Design Rationale
 
 - The log is modelled as typed events rather than free text so the timeline can
