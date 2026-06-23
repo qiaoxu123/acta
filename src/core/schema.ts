@@ -473,6 +473,39 @@ export const ACTIONS: ActionDef[] = [
     },
   },
 
+  // --- Notes -----------------------------------------------------------------
+  {
+    name: "list_notes",
+    mutates: false,
+    description: "List notes (tagged Markdown knowledge / reflections).",
+    inputSchema: { type: "object", properties: { scope: SCOPE } },
+  },
+  {
+    name: "upsert_note",
+    mutates: true,
+    description: "Create or update a note. Matches by id, then title.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        match: {
+          type: "object",
+          properties: { id: { type: "string" }, title: { type: "string" } },
+        },
+        note: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            body: { type: "string", description: "Markdown" },
+            tags: { type: "string", description: "Comma-separated" },
+            pinned: { type: "integer", enum: [0, 1] },
+          },
+          required: ["title"],
+        },
+      },
+      required: ["note"],
+    },
+  },
+
   // --- Tasks (list) ----------------------------------------------------------
   {
     name: "list_tasks",

@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Library,
   Lightbulb,
+  NotebookPen,
   Sparkles,
   Languages,
   Moon,
@@ -28,6 +29,7 @@ const GROUPS = [
     items: [
       { to: "/sparks", key: "nav.sparks", icon: Sparkles },
       { to: "/ideas", key: "nav.ideas", icon: Lightbulb },
+      { to: "/notes", key: "nav.notes", icon: NotebookPen },
     ],
   },
   {

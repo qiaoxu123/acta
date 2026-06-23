@@ -255,6 +255,16 @@ export interface Task extends SyncFields {
   priority: number;
 }
 
+/** Durable tagged knowledge / reflections (心得体会). Markdown body, no
+ *  lifecycle — distinct from sparks (raw inbox) and ideas (tracked projects). */
+export interface Note extends SyncFields {
+  title: string;
+  body: string | null;
+  tags: string | null;
+  pinned: number;
+  archived_at: string | null;
+}
+
 /** The set of tables that participate in JSON export/import & future sync. */
 export const ALL_TABLES = [
   "venues",
@@ -268,6 +278,7 @@ export const ALL_TABLES = [
   "ideas",
   "idea_logs",
   "sparks",
+  "notes",
   "tasks",
 ] as const;
 export type TableName = (typeof ALL_TABLES)[number];

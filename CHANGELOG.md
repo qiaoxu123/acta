@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.11.0] - 2026-06-23
+
+Notes module; dashboard cards become resizable, pinnable widgets.
+
+### Features
+
+- **Notes module** (`notes` table, migration v9; sidebar “Research” group): a
+  tagged Markdown knowledge base for 心得体会 / reading notes / method write-ups —
+  distinct from sparks (raw inbox) and ideas (tracked projects). Flat list with
+  full-text **search** + **tag filter**, pin-to-top, archive. The note page
+  renders Markdown and is **editable in place** (✎ / double-click, ⌘↵ to save);
+  title & tags edit via a small form. Exposed over the API too (`list_notes`,
+  `upsert_note`) and surfaced as a dashboard card.
+- **Dashboard cards = macOS-style widgets**: each card can be **resized**
+  (small → medium → large; span + row count), **pinned to the top**, hidden,
+  collapsed and drag-reordered — all persisted. Slow-moving modules (patents,
+  sparks, notes) default to small; active ones to medium. Denser auto-fill grid
+  (`grid-auto-flow: dense`) packs cards to fill the width.
+
 ## [0.10.0] - 2026-06-23
 
 Dashboard becomes a per-module work-status overview; idea-log timeline gains a

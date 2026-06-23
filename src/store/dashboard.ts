@@ -1,25 +1,33 @@
 import { create } from "zustand";
 
 /**
- * Dashboard layout: which module cards are collapsed/hidden, their order, and
- * the row density. Persisted so the overview the user tunes survives restart.
+ * Dashboard layout, tuned like macOS desktop widgets: each module card has a
+ * size (small / medium / large), can be pinned to the top, collapsed, hidden,
+ * and drag-reordered. All persisted so the board the user arranges survives a
+ * restart.
  */
-export type Density = "compact" | "comfortable";
+export type CardSize = "s" | "m" | "l";
 const KEY = "acta.dash.layout";
 
 interface Saved {
   order: string[];
   collapsed: string[];
   hidden: string[];
-  density: Density;
+  pinned: string[];
+  sizes: Record<string, CardSize>;
 }
 
 interface DashLayout extends Saved {
   toggleCollapsed: (k: string) => void;
   hide: (k: string) => void;
   show: (k: string) => void;
+  togglePin: (k: string) => void;
+  setSize: (k: string, s: CardSize) => void;
   setOrder: (o: string[]) => void;
-  setDensity: (d: Density) => void;
+}
+
+function arr(v: unknown): string[] {
+  return Array.isArray(v) ? v : [];
 }
 
 function load(): Saved {
@@ -28,31 +36,30 @@ function load(): Saved {
     if (raw) {
       const d = JSON.parse(raw);
       return {
-        order: Array.isArray(d.order) ? d.order : [],
-        collapsed: Array.isArray(d.collapsed) ? d.collapsed : [],
-        hidden: Array.isArray(d.hidden) ? d.hidden : [],
-        density: d.density === "comfortable" ? "comfortable" : "compact",
+        order: arr(d.order),
+        collapsed: arr(d.collapsed),
+        hidden: arr(d.hidden),
+        pinned: arr(d.pinned),
+        sizes: d.sizes && typeof d.sizes === "object" ? d.sizes : {},
       };
     }
   } catch {
     /* ignore */
   }
-  return { order: [], collapsed: [], hidden: [], density: "compact" };
+  return { order: [], collapsed: [], hidden: [], pinned: [], sizes: {} };
 }
 
 export const useDashLayout = create<DashLayout>((set, get) => {
   const persist = () => {
-    const { order, collapsed, hidden, density } = get();
-    localStorage.setItem(KEY, JSON.stringify({ order, collapsed, hidden, density }));
+    const { order, collapsed, hidden, pinned, sizes } = get();
+    localStorage.setItem(KEY, JSON.stringify({ order, collapsed, hidden, pinned, sizes }));
   };
+  const toggleIn = (list: string[], k: string) =>
+    list.includes(k) ? list.filter((x) => x !== k) : [...list, k];
   return {
     ...load(),
     toggleCollapsed: (k) => {
-      set((s) => ({
-        collapsed: s.collapsed.includes(k)
-          ? s.collapsed.filter((x) => x !== k)
-          : [...s.collapsed, k],
-      }));
+      set((s) => ({ collapsed: toggleIn(s.collapsed, k) }));
       persist();
     },
     hide: (k) => {
@@ -63,12 +70,16 @@ export const useDashLayout = create<DashLayout>((set, get) => {
       set((s) => ({ hidden: s.hidden.filter((x) => x !== k) }));
       persist();
     },
-    setOrder: (o) => {
-      set({ order: o });
+    togglePin: (k) => {
+      set((s) => ({ pinned: toggleIn(s.pinned, k) }));
       persist();
     },
-    setDensity: (d) => {
-      set({ density: d });
+    setSize: (k, sz) => {
+      set((s) => ({ sizes: { ...s.sizes, [k]: sz } }));
+      persist();
+    },
+    setOrder: (o) => {
+      set({ order: o });
       persist();
     },
   };

@@ -24,6 +24,7 @@ const SECTIONS: SectionDef[] = [
   { key: "patents", base: "/patents", titleKey: "nav.patents", items: true },
   { key: "reviews", base: "/reviews", titleKey: "nav.reviews", items: true },
   { key: "sparks", base: "/sparks", titleKey: "nav.sparks", items: false },
+  { key: "notes", base: "/notes", titleKey: "nav.notes", items: true },
   { key: "ideas", base: "/ideas", titleKey: "nav.ideas", items: true },
   { key: "settings", base: "/settings", titleKey: "nav.settings", items: false },
   { key: "dashboard", base: "/", titleKey: "nav.dashboard", items: false },
