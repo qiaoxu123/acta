@@ -13,6 +13,7 @@ import { listProjects, projectDueMap } from "@/db/repositories/projects";
 import { listIdeas } from "@/db/repositories/ideas";
 import { listSparks } from "@/db/repositories/sparks";
 import { listNotes } from "@/db/repositories/notes";
+import { listReports } from "@/db/repositories/reports";
 import { getAgenda } from "@/db/repositories/dashboard";
 import type { TFn } from "@/lib/i18n";
 
@@ -67,7 +68,7 @@ export async function loadDashboard(t: TFn): Promise<DashData> {
   const now = new Date().toISOString();
   const soon = new Date(Date.now() + 14 * 864e5).toISOString();
 
-  const [manuscripts, dueMap, papers, venues, patents, projects, projDue, ideas, sparks, notes, agenda, taskRows] =
+  const [manuscripts, dueMap, papers, venues, patents, projects, projDue, ideas, sparks, notes, reports, agenda, taskRows] =
     await Promise.all([
       listManuscripts("active"),
       reviewDueMap(),
@@ -79,6 +80,7 @@ export async function loadDashboard(t: TFn): Promise<DashData> {
       listIdeas("active"),
       listSparks("active"),
       listNotes("active"),
+      listReports("active"),
       getAgenda(),
       select<{ n: number }>(
         `SELECT COUNT(*) AS n FROM tasks WHERE deleted_at IS NULL AND done = 0`,
@@ -256,6 +258,18 @@ export async function loadDashboard(t: TFn): Promise<DashData> {
       date: null,
     }));
     cards.notes = { count: notes.length, rows, pills: [] };
+  }
+
+  // --- Reports ---------------------------------------------------------------
+  {
+    const rows = reports.slice(0, ROW_CAP).map((r) => ({
+      id: r.id,
+      title: r.title,
+      sub: r.period_start && r.period_end ? `${r.period_start} ~ ${r.period_end}` : "",
+      href: `/reports/item/${r.id}`,
+      date: null,
+    }));
+    cards.reports = { count: reports.length, rows, pills: [] };
   }
 
   // --- Patents ---------------------------------------------------------------

@@ -13,6 +13,7 @@ import {
   GripVertical,
   Landmark,
   Library,
+  ClipboardList,
   Lightbulb,
   Maximize2,
   NotebookPen,
@@ -47,6 +48,7 @@ const CARD_META: CardMeta[] = [
   { key: "projects", icon: Landmark, labelKey: "side.projects", href: "/projects/vertical", defaultSize: "m" },
   { key: "ideas", icon: Lightbulb, labelKey: "nav.ideas", href: "/ideas", defaultSize: "m" },
   { key: "notes", icon: NotebookPen, labelKey: "nav.notes", href: "/notes", defaultSize: "s" },
+  { key: "reports", icon: ClipboardList, labelKey: "nav.reports", href: "/reports", defaultSize: "s" },
   { key: "sparks", icon: Sparkles, labelKey: "nav.sparks", href: "/sparks", defaultSize: "s" },
   { key: "patents", icon: ScrollText, labelKey: "nav.patents", href: "/patents", defaultSize: "s" },
 ];

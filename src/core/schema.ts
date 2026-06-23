@@ -506,6 +506,39 @@ export const ACTIONS: ActionDef[] = [
     },
   },
 
+  // --- Reports ---------------------------------------------------------------
+  {
+    name: "list_reports",
+    mutates: false,
+    description: "List periodic work-progress reports.",
+    inputSchema: { type: "object", properties: { scope: SCOPE } },
+  },
+  {
+    name: "upsert_report",
+    mutates: true,
+    description: "Create or update a work report. Matches by id, then title.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        match: {
+          type: "object",
+          properties: { id: { type: "string" }, title: { type: "string" } },
+        },
+        report: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            period_start: DATE,
+            period_end: DATE,
+            body: { type: "string", description: "Sectioned Markdown" },
+          },
+          required: ["title"],
+        },
+      },
+      required: ["report"],
+    },
+  },
+
   // --- Tasks (list) ----------------------------------------------------------
   {
     name: "list_tasks",

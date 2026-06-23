@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.12.0] - 2026-06-23
+
+Work Reports module — weekly progress write-ups for group meetings.
+
+### Features
+
+- **Work Reports module** (`reports` table, migration v10; sidebar “Research”
+  group): periodic progress reports built for 组会. **“New this week”** computes
+  the current Mon–Sun period and seeds a four-section template — Done / In
+  progress / Next / Blockers — pre-filled by **aggregating** what actually
+  happened that week from across the app (idea progress & findings, paper
+  submissions/decisions, review submissions). Reports list groups by month
+  (collapsible); the report page renders Markdown, is editable in place, can be
+  **re-aggregated** for its period, and **copied / exported as Markdown** to drop
+  into slides or send to the group. Exposed over the API (`list_reports`,
+  `upsert_report`) and surfaced as a dashboard card.
+
+### Design Rationale
+
+- Aggregation seeds, never overwrites silently: creating a weekly report fills
+  Done/In-progress from real activity; the on-page “re-aggregate” asks before
+  replacing the body. The cross-module pull reuses the same tables the lists use,
+  so nothing is double-entered.
+
 ## [0.11.0] - 2026-06-23
 
 Notes module; dashboard cards become resizable, pinnable widgets.

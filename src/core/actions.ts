@@ -42,6 +42,7 @@ import {
 } from "../db/repositories/ideas";
 import { createSpark, listSparks, promoteSpark, updateSpark } from "../db/repositories/sparks";
 import { createNote, listNotes, updateNote } from "../db/repositories/notes";
+import { createReport, listReports, updateReport } from "../db/repositories/reports";
 import { getAgenda } from "../db/repositories/dashboard";
 import { insert } from "../db/mutate";
 import { select } from "../db/client";
@@ -388,6 +389,24 @@ async function upsertNote(input: Dict) {
   return { ok: true, note_id: id, mode: "created" };
 }
 
+// --- Reports -----------------------------------------------------------------
+
+async function upsertReport(input: Dict) {
+  const { match = {}, report } = input;
+  const all = await listReports("all");
+  const existing =
+    (match.id && all.find((r) => r.id === match.id)) ||
+    (match.title && all.find((r) => ci(r.title, match.title))) ||
+    all.find((r) => ci(r.title, report.title)) ||
+    null;
+  if (existing) {
+    await updateReport(existing.id, defined(report));
+    return { ok: true, report_id: existing.id, mode: "updated" };
+  }
+  const id = await createReport(defined(report) as any);
+  return { ok: true, report_id: id, mode: "created" };
+}
+
 /** Validate that an input object has the action's top-level required keys. */
 function checkRequired(name: string, input: Dict) {
   const def = getAction(name);
@@ -460,6 +479,10 @@ export async function applyAction(name: string, input: Dict = {}): Promise<any> 
       return { ok: true, items: await listNotes((input.scope as ListScope) || "all") };
     case "upsert_note":
       return upsertNote(input);
+    case "list_reports":
+      return { ok: true, items: await listReports((input.scope as ListScope) || "all") };
+    case "upsert_report":
+      return upsertReport(input);
     case "list_tasks": {
       const cond = input.include_done ? "" : "AND (done IS NULL OR done = 0)";
       const items = await select(

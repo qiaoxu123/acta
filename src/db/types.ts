@@ -265,6 +265,15 @@ export interface Note extends SyncFields {
   archived_at: string | null;
 }
 
+/** Periodic work-progress report (weekly), sectioned Markdown for group meetings. */
+export interface Report extends SyncFields {
+  title: string;
+  period_start: string | null;
+  period_end: string | null;
+  body: string | null;
+  archived_at: string | null;
+}
+
 /** The set of tables that participate in JSON export/import & future sync. */
 export const ALL_TABLES = [
   "venues",
@@ -279,6 +288,7 @@ export const ALL_TABLES = [
   "idea_logs",
   "sparks",
   "notes",
+  "reports",
   "tasks",
 ] as const;
 export type TableName = (typeof ALL_TABLES)[number];

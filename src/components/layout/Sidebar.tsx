@@ -4,6 +4,7 @@ import {
   BookText,
   Building2,
   CalendarClock,
+  ClipboardList,
   FileText,
   Landmark,
   LayoutDashboard,
@@ -30,6 +31,7 @@ const GROUPS = [
       { to: "/sparks", key: "nav.sparks", icon: Sparkles },
       { to: "/ideas", key: "nav.ideas", icon: Lightbulb },
       { to: "/notes", key: "nav.notes", icon: NotebookPen },
+      { to: "/reports", key: "nav.reports", icon: ClipboardList },
     ],
   },
   {
