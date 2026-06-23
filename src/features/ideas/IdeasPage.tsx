@@ -13,9 +13,10 @@ import {
 } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
 import { DockPanel } from "@/components/layout/DockPanel";
-import { Button, TextInput } from "@/components/ui/controls";
+import { Button, Select, TextInput, Textarea } from "@/components/ui/controls";
 import { Badge } from "@/components/ui/misc";
 import { Ext } from "@/components/ui/Ext";
+import { Markdown } from "@/components/ui/Markdown";
 import { ListControls, type Option } from "@/components/ui/ListControls";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import {
@@ -24,8 +25,9 @@ import {
   deleteIdeaLog,
   listIdeaLogs,
   listIdeas,
+  updateIdeaLog,
 } from "@/db/repositories/ideas";
-import type { Idea, IdeaLog, IdeaStatus } from "@/db/types";
+import type { Idea, IdeaLog, IdeaLogKind, IdeaStatus } from "@/db/types";
 import { formatDate } from "@/lib/dates";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n, type TFn } from "@/lib/i18n";
@@ -63,6 +65,7 @@ const LOG_TONE: Record<string, "neutral" | "accent" | "warn" | "ok"> = {
   decision: "warn",
   progress: "ok",
 };
+const LOG_KINDS: IdeaLogKind[] = ["note", "finding", "decision", "progress"];
 // Git-graph node colour per event kind (the coloured dot on the rail).
 const LOG_NODE: Record<string, string> = {
   note: "bg-content-subtle",
@@ -277,21 +280,51 @@ export function IdeaDetail({
   t,
   onEdit,
   onDelete,
+  wide = false,
 }: {
   idea: Idea;
   t: TFn;
   onEdit: () => void;
   onDelete: () => void;
+  /** Full-width item page: render the log timeline as a master/detail sidebar
+   *  instead of a stack of full-width text blocks. */
+  wide?: boolean;
 }) {
   const tick = useRefresh((s) => s.tick);
   const [logs, setLogs] = useState<IdeaLog[]>([]);
   const [logForm, setLogForm] = useState(false);
+  const [selId, setSelId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<{ kind: IdeaLogKind; body: string }>({
+    kind: "note",
+    body: "",
+  });
   const archived = !!idea.archived_at;
   const tags = (idea.tags ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 
   useEffect(() => {
-    listIdeaLogs(idea.id).then(setLogs);
+    listIdeaLogs(idea.id).then((ls) => {
+      setLogs(ls);
+      // Keep the current selection if it survives a refresh; else select newest.
+      setSelId((cur) => (cur && ls.some((l) => l.id === cur) ? cur : ls.at(-1)?.id ?? null));
+    });
   }, [idea.id, tick]);
+
+  // Leave edit mode whenever the selected entry (or the idea) changes.
+  useEffect(() => {
+    setEditing(false);
+  }, [selId, idea.id]);
+
+  const startEdit = (l: IdeaLog) => {
+    setDraft({ kind: l.kind, body: l.body });
+    setEditing(true);
+  };
+  const saveEdit = async (l: IdeaLog) => {
+    if (!draft.body.trim()) return;
+    await updateIdeaLog(l.id, { kind: draft.kind, body: draft.body.trim() });
+    setEditing(false);
+    useRefresh.getState().bump();
+  };
 
   const toggleArchive = async () => {
     await archiveIdea(idea.id, !archived);
@@ -304,111 +337,237 @@ export function IdeaDetail({
     }
   };
 
-  return (
-    <div className="p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold leading-snug text-content">{idea.title}</h2>
-          {idea.summary && <p className="mt-1 text-xs text-content-muted">{idea.summary}</p>}
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            <Badge tone="neutral">{t(`icat.${idea.category}`)}</Badge>
-            <Badge tone={STATUS_TONE[idea.status]}>{t(`istatus.${idea.status}`)}</Badge>
-            {idea.priority === 1 && (
-              <Badge tone="warn">
-                <Star size={10} className="mr-0.5 fill-current" />
-                {t("ideaf.priority")}
-              </Badge>
-            )}
-            {archived && <Badge tone="neutral">{t("lv.archivedBadge")}</Badge>}
+  // One coloured rail node per event (decisions are diamonds), with the
+  // connecting line to the next node below.
+  const railNode = (l: IdeaLog, last: boolean) => (
+    <div className="relative flex w-3 shrink-0 flex-col items-center pt-1.5">
+      <span
+        className={clsx(
+          "z-10 h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-surface",
+          l.kind === "decision" && "rotate-45 rounded-[2px]",
+          LOG_NODE[l.kind] ?? "bg-content-subtle",
+        )}
+      />
+      {!last && <span className="-mb-1 w-px flex-1 bg-border" />}
+    </div>
+  );
+
+  const header = (
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <h2 className="text-sm font-semibold leading-snug text-content">{idea.title}</h2>
+        {idea.summary && <p className="mt-1 text-xs text-content-muted">{idea.summary}</p>}
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          <Badge tone="neutral">{t(`icat.${idea.category}`)}</Badge>
+          <Badge tone={STATUS_TONE[idea.status]}>{t(`istatus.${idea.status}`)}</Badge>
+          {idea.priority === 1 && (
+            <Badge tone="warn">
+              <Star size={10} className="mr-0.5 fill-current" />
+              {t("ideaf.priority")}
+            </Badge>
+          )}
+          {archived && <Badge tone="neutral">{t("lv.archivedBadge")}</Badge>}
+        </div>
+        {tags.length > 0 && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {tags.map((tg) => (
+              <span key={tg} className="rounded bg-surface-sunken px-1.5 py-0.5 text-2xs text-content-subtle">
+                #{tg}
+              </span>
+            ))}
           </div>
-          {tags.length > 0 && (
-            <div className="mt-1.5 flex flex-wrap gap-1">
-              {tags.map((tg) => (
-                <span key={tg} className="rounded bg-surface-sunken px-1.5 py-0.5 text-2xs text-content-subtle">
-                  #{tg}
-                </span>
-              ))}
-            </div>
-          )}
-          {idea.repo_url && (
-            <Ext
-              href={idea.repo_url}
-              className="mt-2 inline-flex items-center gap-1 text-2xs text-accent hover:underline"
-            >
-              <ExternalLink size={12} /> {t("idea.openRepo")}
-            </Ext>
-          )}
-        </div>
-        <div className="flex shrink-0 gap-1.5">
-          <Button variant="ghost" onClick={toggleArchive} title={archived ? t("lv.unarchive") : t("lv.archive")}>
-            {archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
-          </Button>
-          <Button variant="ghost" onClick={onEdit}>
-            <Pencil size={14} />
-          </Button>
-          <Button variant="danger" onClick={onDelete}>
-            <Trash2 size={14} />
-          </Button>
-        </div>
+        )}
+        {idea.repo_url && (
+          <Ext
+            href={idea.repo_url}
+            className="mt-2 inline-flex items-center gap-1 text-2xs text-accent hover:underline"
+          >
+            <ExternalLink size={12} /> {t("idea.openRepo")}
+          </Ext>
+        )}
       </div>
-
-      {idea.notes && (
-        <p className="mt-3 whitespace-pre-wrap rounded-md bg-surface-sunken p-3 text-xs text-content-muted">
-          {idea.notes}
-        </p>
-      )}
-
-      <div className="mt-4 mb-2 flex items-center justify-between">
-        <h3 className="text-2xs font-semibold uppercase tracking-wide text-content-subtle">
-          {t("idea.logs")}
-        </h3>
-        <Button onClick={() => setLogForm(true)}>
-          <Plus size={13} /> {t("idea.addLog")}
+      <div className="flex shrink-0 gap-1.5">
+        <Button variant="ghost" onClick={toggleArchive} title={archived ? t("lv.unarchive") : t("lv.archive")}>
+          {archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+        </Button>
+        <Button variant="ghost" onClick={onEdit}>
+          <Pencil size={14} />
+        </Button>
+        <Button variant="danger" onClick={onDelete}>
+          <Trash2 size={14} />
         </Button>
       </div>
+    </div>
+  );
 
-      {logs.length === 0 ? (
-        <p className="rounded-md border border-dashed border-border px-3 py-5 text-center text-2xs text-content-subtle">
-          {t("idea.noLogs")}
-        </p>
-      ) : (
-        // Git-graph timeline: a vertical rail with one coloured node per event
-        // (decisions are diamonds), newest at the top.
-        <ol className="ml-1">
-          {[...logs].reverse().map((l, i, arr) => (
-            <li key={l.id} className="group flex gap-3">
-              <div className="relative flex w-3 shrink-0 flex-col items-center pt-1">
-                <span
-                  className={clsx(
-                    "z-10 h-2.5 w-2.5 shrink-0 rounded-full ring-2 ring-surface",
-                    l.kind === "decision" && "rotate-45 rounded-[2px]",
-                    LOG_NODE[l.kind] ?? "bg-content-subtle",
-                  )}
-                />
-                {i < arr.length - 1 && <span className="-mb-1 w-px flex-1 bg-border" />}
-              </div>
-              <div className="min-w-0 flex-1 pb-4">
-                <div className="flex items-center gap-2">
-                  <Badge tone={LOG_TONE[l.kind] ?? "neutral"}>{t(`ilogkind.${l.kind}`)}</Badge>
-                  <span className="text-2xs text-content-subtle">{formatDate(l.created_at)}</span>
-                  <Button
-                    variant="danger"
-                    className="ml-auto opacity-0 transition group-hover:opacity-100"
-                    onClick={() => removeLog(l)}
-                  >
-                    <Trash2 size={12} />
-                  </Button>
+  const notes = idea.notes && (
+    <p className="mt-3 max-h-28 overflow-y-auto whitespace-pre-wrap rounded-md bg-surface-sunken p-3 text-xs text-content-muted">
+      {idea.notes}
+    </p>
+  );
+
+  const logsTitle = (
+    <div className="flex items-center justify-between">
+      <h3 className="text-2xs font-semibold uppercase tracking-wide text-content-subtle">
+        {t("idea.logs")}
+      </h3>
+      <Button onClick={() => setLogForm(true)}>
+        <Plus size={13} /> {t("idea.addLog")}
+      </Button>
+    </div>
+  );
+
+  const emptyLogs = (
+    <p className="rounded-md border border-dashed border-border px-3 py-5 text-center text-2xs text-content-subtle">
+      {t("idea.noLogs")}
+    </p>
+  );
+
+  const reversed = [...logs].reverse(); // newest first
+  const logForm_ = <IdeaLogForm open={logForm} ideaId={idea.id} onClose={() => setLogForm(false)} />;
+
+  // --- Narrow (dock panel): stacked git-graph timeline -----------------------
+  if (!wide) {
+    return (
+      <div className="p-4">
+        {header}
+        {notes}
+        <div className="mt-4 mb-2">{logsTitle}</div>
+        {logs.length === 0 ? (
+          emptyLogs
+        ) : (
+          <ol className="ml-1">
+            {reversed.map((l, i, arr) => (
+              <li key={l.id} className="group flex gap-3">
+                {railNode(l, i === arr.length - 1)}
+                <div className="min-w-0 flex-1 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Badge tone={LOG_TONE[l.kind] ?? "neutral"}>{t(`ilogkind.${l.kind}`)}</Badge>
+                    <span className="text-2xs text-content-subtle">{formatDate(l.created_at)}</span>
+                    <Button
+                      variant="danger"
+                      className="ml-auto opacity-0 transition group-hover:opacity-100"
+                      onClick={() => removeLog(l)}
+                    >
+                      <Trash2 size={12} />
+                    </Button>
+                  </div>
+                  <pre className="mt-1.5 whitespace-pre-wrap rounded bg-surface-sunken p-2.5 font-sans text-2xs leading-relaxed text-content-muted">
+                    {l.body}
+                  </pre>
                 </div>
-                <pre className="mt-1.5 whitespace-pre-wrap rounded bg-surface-sunken p-2.5 font-sans text-2xs leading-relaxed text-content-muted">
-                  {l.body}
-                </pre>
-              </div>
-            </li>
-          ))}
-        </ol>
-      )}
+              </li>
+            ))}
+          </ol>
+        )}
+        {logForm_}
+      </div>
+    );
+  }
 
-      <IdeaLogForm open={logForm} ideaId={idea.id} onClose={() => setLogForm(false)} />
+  // --- Wide (item page): timeline sidebar + selected-entry reading pane ------
+  const sel = logs.find((l) => l.id === selId) ?? null;
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="shrink-0 border-b border-border p-4">
+        {header}
+        {notes}
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col px-4 pb-2 pt-3">
+        <div className="mb-2 shrink-0">{logsTitle}</div>
+        {logs.length === 0 ? (
+          emptyLogs
+        ) : (
+          <div className="flex min-h-0 flex-1 overflow-hidden rounded-md border border-border">
+            {/* left: git-graph timeline, compact + selectable */}
+            <ol className="w-72 shrink-0 overflow-y-auto border-r border-border bg-surface-sunken/40 p-2">
+              {reversed.map((l, i, arr) => (
+                <li key={l.id} className="flex gap-2.5">
+                  {railNode(l, i === arr.length - 1)}
+                  <button
+                    onClick={() => setSelId(l.id)}
+                    className={clsx(
+                      "mb-1 min-w-0 flex-1 rounded-md px-2 py-1.5 text-left transition-colors",
+                      selId === l.id ? "bg-accent-soft" : "hover:bg-surface-raised",
+                    )}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Badge tone={LOG_TONE[l.kind] ?? "neutral"}>{t(`ilogkind.${l.kind}`)}</Badge>
+                      <span className="text-2xs text-content-subtle">{formatDate(l.created_at)}</span>
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-2xs leading-relaxed text-content-muted">
+                      {l.body}
+                    </p>
+                  </button>
+                </li>
+              ))}
+            </ol>
+            {/* right: full body of the selected entry — view or inline edit */}
+            <div className="min-w-0 flex-1 overflow-y-auto p-4">
+              {sel && !editing && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Badge tone={LOG_TONE[sel.kind] ?? "neutral"}>{t(`ilogkind.${sel.kind}`)}</Badge>
+                    <span className="text-2xs text-content-subtle">{formatDate(sel.created_at)}</span>
+                    <Button
+                      variant="ghost"
+                      className="ml-auto"
+                      title={t("idea.editLog")}
+                      onClick={() => startEdit(sel)}
+                    >
+                      <Pencil size={12} />
+                    </Button>
+                    <Button variant="danger" onClick={() => removeLog(sel)}>
+                      <Trash2 size={12} />
+                    </Button>
+                  </div>
+                  {/* Double-click the text to start editing, like a note app. */}
+                  <div onDoubleClick={() => startEdit(sel)} className="cursor-text">
+                    <Markdown source={sel.body} className="mt-3 max-w-3xl" />
+                  </div>
+                </>
+              )}
+              {sel && editing && (
+                <div className="flex max-w-3xl flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Select
+                      className="w-32"
+                      value={draft.kind}
+                      onChange={(e) => setDraft((d) => ({ ...d, kind: e.target.value as IdeaLogKind }))}
+                    >
+                      {LOG_KINDS.map((k) => (
+                        <option key={k} value={k}>
+                          {t(`ilogkind.${k}`)}
+                        </option>
+                      ))}
+                    </Select>
+                    <span className="text-2xs text-content-subtle">{t("idea.markdownHint")}</span>
+                    <Button className="ml-auto" onClick={() => setEditing(false)}>
+                      {t("common.cancel")}
+                    </Button>
+                    <Button variant="primary" onClick={() => saveEdit(sel)}>
+                      {t("common.save")}
+                    </Button>
+                  </div>
+                  <Textarea
+                    autoFocus
+                    className="min-h-[60vh] font-mono text-xs leading-relaxed"
+                    value={draft.body}
+                    onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
+                    onKeyDown={(e) => {
+                      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                        e.preventDefault();
+                        saveEdit(sel);
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+      {logForm_}
     </div>
   );
 }

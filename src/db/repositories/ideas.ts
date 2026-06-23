@@ -57,6 +57,10 @@ export function createIdeaLog(data: IdeaLogInput): Promise<string> {
   return insert("idea_logs", data);
 }
 
+export function updateIdeaLog(id: string, patch: Partial<IdeaLogInput>): Promise<void> {
+  return update("idea_logs", id, patch);
+}
+
 export function deleteIdeaLog(id: string): Promise<void> {
   return softDelete("idea_logs", id);
 }

@@ -44,8 +44,8 @@ export function IdeaItemPage() {
   return (
     <>
       <Breadcrumb trail={[{ label: t("nav.ideas"), href: "/ideas" }, { label: x.title }]} />
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <IdeaDetail idea={x} t={t} onEdit={() => setForm(true)} onDelete={remove} />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <IdeaDetail idea={x} t={t} wide onEdit={() => setForm(true)} onDelete={remove} />
       </div>
       <IdeaForm
         open={form}

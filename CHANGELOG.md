@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.10.0] - 2026-06-23
+
+Dashboard becomes a per-module work-status overview; idea-log timeline gains a
+master/detail reading pane with editable Markdown.
+
+### Features
+
+- **Dashboard overview grid**: the dashboard is no longer one flat deadline
+  timeline — it's a card per module (reviews, papers, conferences, journals,
+  projects, ideas, sparks, patents), each showing its count, a status-pill
+  breakdown, and the few most relevant rows (sorted by each module's own most
+  useful dimension — nearest due, revision deadline, lifecycle stage…). A
+  cross-module **focus bar** pins the single nearest deadline plus key counts
+  (to-review / in-submission / to-do / due ≤14d). Cards can be **collapsed**,
+  **hidden** (restored from the "Hidden" menu), **drag-reordered**, and shown at
+  two **densities** — all persisted (`acta.dash.layout`) so you can tune the
+  page to fit one screen without scrolling.
+- **Idea-log timeline → master/detail**: on the full-width idea page the
+  discussion/progress log is now a compact selectable git-graph sidebar (badge +
+  date + 2-line preview) with the selected entry's full body in a reading pane,
+  instead of a wall of full-width text blocks. The narrow dock keeps the stacked
+  timeline.
+- **Markdown everywhere in logs**: log bodies render as Markdown (new `marked`
+  dependency + `Markdown` component + `.md` prose styles). The detail pane is
+  **editable in place** — click ✎ or double-click the text to edit the Markdown
+  source, ⌘↵ to save (`updateIdeaLog`).
+
+### Fixes
+
+- **Double-click-to-maximize is reliable again**: Tauri's drag region already
+  maximizes on macOS double-click; the app's extra React `toggleMaximize` made
+  it double-fire and cancel itself out (maximize-then-restore). Removed the JS
+  handler and switched the sidebar/top bar to `data-tauri-drag-region="deep"`
+  so the whole bar drags and zooms; breadcrumb crumbs marked `role="link"` stay
+  clickable.
+
 ## [0.9.0] - 2026-06-23
 
 Full headless-API coverage for every module; sidebar regrouped by intent.

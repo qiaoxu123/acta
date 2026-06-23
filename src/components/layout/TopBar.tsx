@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { sectionInfo } from "@/lib/tabs";
 import { useBreadcrumb, type Crumb } from "@/store/breadcrumb";
-import { onTitlebarDoubleClick } from "@/lib/titlebar";
 import { useI18n } from "@/lib/i18n";
 
 const SECTION_ICON: Record<string, LucideIcon> = {
@@ -68,9 +67,12 @@ export function TopBar() {
   return (
     // pt-8 sinks the bar below the overlaid traffic lights so the path lines up
     // with the sidebar "Acta" header.
+    // `deep`: the whole bar (incl. the breadcrumb gutter) is a drag region and
+    // Tauri's native handler does double-click-to-zoom. Interactive children
+    // (the back/forward <button>s, and crumbs marked role="link") are excluded
+    // by Tauri automatically, so they stay clickable and don't start a drag.
     <div
-      data-tauri-drag-region
-      onDoubleClick={onTitlebarDoubleClick}
+      data-tauri-drag-region="deep"
       className="flex items-center gap-1 border-b border-border bg-surface-sunken px-2 pb-2 pt-8"
     >
       <div className="flex shrink-0 items-center gap-0.5">
@@ -92,6 +94,7 @@ export function TopBar() {
                 <ChevronRight size={12} className="shrink-0 text-content-subtle" />
               )}
               <span
+                role={clickable ? "link" : undefined}
                 onClick={clickable ? () => navigate(c.href!) : undefined}
                 className={clsx(
                   "flex min-w-0 shrink-0 items-center gap-1.5",
