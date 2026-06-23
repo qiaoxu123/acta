@@ -32,10 +32,18 @@ const GROUPS = [
     ],
   },
   {
-    label: "side.results",
+    // Things to keep an eye on (deadlines, review obligations) — not own work.
+    label: "side.tracking",
     items: [
       { to: "/journals", key: "nav.journals", icon: BookText },
       { to: "/conferences", key: "nav.conferences", icon: CalendarClock },
+      { to: "/reviews", key: "nav.reviews", icon: Library },
+    ],
+  },
+  {
+    // Own scholarly output.
+    label: "side.results",
+    items: [
       { to: "/papers", key: "nav.papers", icon: FileText },
       { to: "/patents", key: "nav.patents", icon: ScrollText },
     ],
@@ -46,10 +54,6 @@ const GROUPS = [
       { to: "/projects/vertical", key: "nav.projects.vertical", icon: Landmark },
       { to: "/projects/horizontal", key: "nav.projects.horizontal", icon: Building2 },
     ],
-  },
-  {
-    label: "side.other",
-    items: [{ to: "/reviews", key: "nav.reviews", icon: Library }],
   },
 ];
 

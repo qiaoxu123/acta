@@ -282,6 +282,7 @@ const en: Dict = {
   "pstatus.camera_ready": "Camera-ready",
   "pstatus.published": "Published",
   // sidebar groups + new nav
+  "side.tracking": "Tracking",
   "side.results": "Output",
   "side.projects": "Projects",
   "side.other": "Other",
@@ -706,6 +707,7 @@ const zh: Dict = {
   "pstatus.rejected": "已拒稿",
   "pstatus.camera_ready": "终稿",
   "pstatus.published": "已发表",
+  "side.tracking": "追踪",
   "side.results": "成果",
   "side.projects": "项目",
   "side.other": "其他",

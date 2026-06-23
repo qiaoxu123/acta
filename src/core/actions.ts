@@ -31,8 +31,20 @@ import {
   updatePaper,
   updateSubmission,
 } from "../db/repositories/papers";
+import { createPatent, listPatents, updatePatent } from "../db/repositories/patents";
+import { createProject, listProjects, updateProject } from "../db/repositories/projects";
+import {
+  createIdea,
+  createIdeaLog,
+  getIdea,
+  listIdeas,
+  updateIdea,
+} from "../db/repositories/ideas";
+import { createSpark, listSparks, promoteSpark, updateSpark } from "../db/repositories/sparks";
 import { getAgenda } from "../db/repositories/dashboard";
 import { insert } from "../db/mutate";
+import { select } from "../db/client";
+import type { ListScope } from "../db/types";
 import { localInputToUtcIso } from "../lib/dates";
 import { getAction } from "./schema";
 
@@ -229,6 +241,134 @@ async function addTask(input: Dict) {
   return { ok: true, task_id: id };
 }
 
+// --- Patents -----------------------------------------------------------------
+
+async function upsertPatent(input: Dict) {
+  const { match = {}, patent } = input;
+  const all = await listPatents("all");
+  const existing =
+    (match.id && all.find((p) => p.id === match.id)) ||
+    (match.app_number && all.find((p) => ci(p.app_number, match.app_number))) ||
+    (match.title && all.find((p) => ci(p.title, match.title))) ||
+    (patent.app_number && all.find((p) => ci(p.app_number, patent.app_number))) ||
+    all.find((p) => ci(p.title, patent.title)) ||
+    null;
+
+  if (existing) {
+    await updatePatent(existing.id, defined(patent));
+    return { ok: true, patent_id: existing.id, mode: "updated" };
+  }
+  const id = await createPatent(defined(patent) as any);
+  return { ok: true, patent_id: id, mode: "created" };
+}
+
+// --- Projects ----------------------------------------------------------------
+
+async function upsertProject(input: Dict) {
+  const { match = {}, project } = input;
+  const tz = project.timezone || "local";
+  const data = defined({
+    name: project.name,
+    category: project.category ?? undefined,
+    level: project.level ?? undefined,
+    program: project.program ?? undefined,
+    agency: project.agency ?? undefined,
+    number: project.number ?? undefined,
+    pi_role: project.pi_role ?? undefined,
+    amount: project.amount ?? undefined,
+    status: project.status ?? undefined,
+    apply_deadline:
+      project.apply_deadline !== undefined ? toUtc(project.apply_deadline, tz) : undefined,
+    start_date: project.start_date ?? undefined,
+    end_date: project.end_date ?? undefined,
+    notes: project.notes ?? undefined,
+  });
+  const all = await listProjects("all");
+  const existing =
+    (match.id && all.find((p) => p.id === match.id)) ||
+    (match.number && all.find((p) => ci(p.number, match.number))) ||
+    (match.name && all.find((p) => ci(p.name, match.name))) ||
+    (project.number && all.find((p) => ci(p.number, project.number))) ||
+    all.find((p) => ci(p.name, project.name)) ||
+    null;
+
+  if (existing) {
+    await updateProject(existing.id, data);
+    return { ok: true, project_id: existing.id, mode: "updated" };
+  }
+  const id = await createProject(data as any);
+  return { ok: true, project_id: id, mode: "created" };
+}
+
+// --- Ideas -------------------------------------------------------------------
+
+async function upsertIdea(input: Dict) {
+  const { match = {}, idea, logs = [] } = input;
+  const all = await listIdeas("all");
+  const existing =
+    (match.id && all.find((i) => i.id === match.id)) ||
+    (match.title && all.find((i) => ci(i.title, match.title))) ||
+    all.find((i) => ci(i.title, idea.title)) ||
+    null;
+
+  let id: string;
+  let mode: "created" | "updated";
+  if (existing) {
+    await updateIdea(existing.id, defined(idea));
+    id = existing.id;
+    mode = "updated";
+  } else {
+    id = await createIdea(defined(idea) as any);
+    mode = "created";
+  }
+
+  const logResults = [];
+  for (const l of logs as Dict[]) {
+    const lid = await createIdeaLog({
+      idea_id: id,
+      kind: l.kind || "note",
+      body: l.body,
+    } as any);
+    logResults.push({ id: lid });
+  }
+  return { ok: true, idea_id: id, mode, logs: logResults };
+}
+
+async function addIdeaLog(input: Dict) {
+  const idea = await getIdea(input.idea_id);
+  if (!idea) throw new Error(`No idea with id: ${input.idea_id}`);
+  const id = await createIdeaLog({
+    idea_id: input.idea_id,
+    kind: input.kind || "note",
+    body: input.body,
+  } as any);
+  return { ok: true, log_id: id, idea_id: input.idea_id };
+}
+
+// --- Sparks ------------------------------------------------------------------
+
+async function upsertSpark(input: Dict) {
+  const { match = {}, spark } = input;
+  if (match.id) {
+    const existing = (await listSparks("all")).find((s) => s.id === match.id);
+    if (existing) {
+      await updateSpark(existing.id, defined(spark));
+      return { ok: true, spark_id: existing.id, mode: "updated" };
+    }
+  }
+  const id = await createSpark(
+    defined({ kind: spark.kind ?? undefined, body: spark.body, tags: spark.tags ?? undefined }) as any,
+  );
+  return { ok: true, spark_id: id, mode: "created" };
+}
+
+async function promoteSparkAction(input: Dict) {
+  const s = (await listSparks("all")).find((x) => x.id === input.spark_id);
+  if (!s) throw new Error(`No spark with id: ${input.spark_id}`);
+  const ideaId = await promoteSpark(s);
+  return { ok: true, idea_id: ideaId, spark_id: s.id };
+}
+
 /** Validate that an input object has the action's top-level required keys. */
 function checkRequired(name: string, input: Dict) {
   const def = getAction(name);
@@ -267,6 +407,44 @@ export async function applyAction(name: string, input: Dict = {}): Promise<any> 
       return { ok: true, items: await listPapers("all") };
     case "list_reviews":
       return { ok: true, items: await listManuscripts("all") };
+    case "list_venues": {
+      const scope = (input.scope as ListScope) || "all";
+      let items = await listVenues(scope);
+      if (input.kind) items = items.filter((v) => v.kind === input.kind);
+      return { ok: true, items };
+    }
+    case "list_patents":
+      return { ok: true, items: await listPatents((input.scope as ListScope) || "all") };
+    case "upsert_patent":
+      return upsertPatent(input);
+    case "list_projects": {
+      const scope = (input.scope as ListScope) || "all";
+      let items = await listProjects(scope);
+      if (input.category) items = items.filter((p) => p.category === input.category);
+      return { ok: true, items };
+    }
+    case "upsert_project":
+      return upsertProject(input);
+    case "list_ideas":
+      return { ok: true, items: await listIdeas((input.scope as ListScope) || "all") };
+    case "upsert_idea":
+      return upsertIdea(input);
+    case "add_idea_log":
+      return addIdeaLog(input);
+    case "list_sparks":
+      return { ok: true, items: await listSparks((input.scope as ListScope) || "all") };
+    case "upsert_spark":
+      return upsertSpark(input);
+    case "promote_spark":
+      return promoteSparkAction(input);
+    case "list_tasks": {
+      const cond = input.include_done ? "" : "AND (done IS NULL OR done = 0)";
+      const items = await select(
+        `SELECT * FROM tasks WHERE deleted_at IS NULL ${cond}
+           ORDER BY due_date IS NULL, due_date ASC`,
+      );
+      return { ok: true, items };
+    }
     default:
       throw new Error(`No handler for action: ${name}`);
   }

@@ -1,6 +1,6 @@
 {
   "name": "acta",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Acta — a Zotero-style desktop app to track journal/conference deadlines, peer reviews, and your own paper progress.",
   "type": "module",
   "private": true,

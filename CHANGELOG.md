@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.9.0] - 2026-06-23
+
+Full headless-API coverage for every module; sidebar regrouped by intent.
+
+### Features
+
+- **Every module is now reachable over the local HTTP API / MCP** (`server/`,
+  `mcp/`), not just venues/reviews/papers. The action catalog (`GET /actions`)
+  grows from 8 to 20:
+  - **Venues**: `list_venues` (filter by kind) alongside the existing
+    `find_venue` / `upsert_venue`.
+  - **Patents**: `list_patents`, `upsert_patent` (match by id → app_number →
+    title).
+  - **Projects**: `list_projects` (filter by category), `upsert_project` (match
+    by id → number → name; `apply_deadline` accepts a local wall-clock time +
+    `timezone` and is stored as a UTC instant, like venue deadlines).
+  - **Ideas**: `list_ideas`, `upsert_idea` (match by id → title, with an
+    optional append-only `logs[]` for the git-graph timeline), and
+    `add_idea_log` to append one note/finding/decision/progress entry.
+  - **Sparks**: `list_sparks`, `upsert_spark`, and `promote_spark` (turn a spark
+    into a tracked idea and archive it off the board).
+  - **Tasks**: `list_tasks` (open by default; `include_done` to include done).
+- So an agent / script (the 小龙虾 worker, a cron job, Claude via MCP) can now
+  read and write ideas, inspiration, patents, projects and tasks through the
+  same action layer the desktop UI uses — upserts match on natural keys, so
+  repeated calls merge instead of duplicating.
+
+### Design Rationale
+
+- All new handlers route through `applyAction()` and the existing repositories /
+  mutation gateway, so writes stay sync-ready (`sync_status='dirty'`) and there's
+  one source of truth. No new transport code: adding entries to the `ACTIONS`
+  registry auto-exposes them over both HTTP (`POST /actions/:name`) and MCP.
+- Reads default to scope `all` (the automation surface wants everything, not just
+  the UI's "active" filter); list actions accept an optional `scope`/`kind`/
+  `category` filter.
+
+### Fixes
+
+- **Sidebar regrouped by intent**: journals / conferences / reviews now sit under
+  a **Tracking** group (external things to watch), while papers / patents are
+  **Output** (own work); the lone "Other" group is retired.
+
 ## [0.8.0] - 2026-06-22
 
 wolai-style breadcrumb navigation replaces the tab strip, plus resizable list columns.
