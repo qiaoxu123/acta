@@ -2,11 +2,13 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { ResizablePane } from "./ResizablePane";
 import { TopBar } from "./TopBar";
+import { Onboarding } from "@/features/onboarding/Onboarding";
 
 /** Top-level frame: resizable sidebar + breadcrumb-headed, routed main content. */
 export function AppShell() {
   return (
     <div className="flex h-full w-full overflow-hidden bg-surface">
+      <Onboarding />
       <ResizablePane storageKey="acta.w.sidebar" defaultWidth={210} min={170} max={320}>
         <Sidebar />
       </ResizablePane>

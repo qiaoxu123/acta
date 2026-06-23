@@ -29,6 +29,7 @@ import { formatDeadline } from "@/lib/dates";
 import { useI18n, type TFn } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
 import { useDashLayout, type CardSize } from "@/store/dashboard";
+import { useModules, type ModuleKey } from "@/store/modules";
 
 interface CardMeta {
   key: string;
@@ -36,21 +37,22 @@ interface CardMeta {
   labelKey: string;
   href: string;
   defaultSize: CardSize;
+  module: ModuleKey;
 }
 
 // Default order: time-sensitive modules first. Default size: things that change
 // often get medium (2-wide); slow-moving ones (patents, sparks) start small.
 const CARD_META: CardMeta[] = [
-  { key: "reviews", icon: Library, labelKey: "nav.reviews", href: "/reviews", defaultSize: "m" },
-  { key: "papers", icon: FileText, labelKey: "nav.papers", href: "/papers", defaultSize: "m" },
-  { key: "conferences", icon: CalendarClock, labelKey: "nav.conferences", href: "/conferences", defaultSize: "m" },
-  { key: "journals", icon: BookText, labelKey: "nav.journals", href: "/journals", defaultSize: "m" },
-  { key: "projects", icon: Landmark, labelKey: "side.projects", href: "/projects/vertical", defaultSize: "m" },
-  { key: "ideas", icon: Lightbulb, labelKey: "nav.ideas", href: "/ideas", defaultSize: "m" },
-  { key: "notes", icon: NotebookPen, labelKey: "nav.notes", href: "/notes", defaultSize: "s" },
-  { key: "reports", icon: ClipboardList, labelKey: "nav.reports", href: "/reports", defaultSize: "s" },
-  { key: "sparks", icon: Sparkles, labelKey: "nav.sparks", href: "/sparks", defaultSize: "s" },
-  { key: "patents", icon: ScrollText, labelKey: "nav.patents", href: "/patents", defaultSize: "s" },
+  { key: "reviews", icon: Library, labelKey: "nav.reviews", href: "/reviews", defaultSize: "m", module: "reviews" },
+  { key: "papers", icon: FileText, labelKey: "nav.papers", href: "/papers", defaultSize: "m", module: "papers" },
+  { key: "conferences", icon: CalendarClock, labelKey: "nav.conferences", href: "/conferences", defaultSize: "m", module: "venues" },
+  { key: "journals", icon: BookText, labelKey: "nav.journals", href: "/journals", defaultSize: "m", module: "venues" },
+  { key: "projects", icon: Landmark, labelKey: "side.projects", href: "/projects/vertical", defaultSize: "m", module: "projects" },
+  { key: "ideas", icon: Lightbulb, labelKey: "nav.ideas", href: "/ideas", defaultSize: "m", module: "ideas" },
+  { key: "notes", icon: NotebookPen, labelKey: "nav.notes", href: "/notes", defaultSize: "s", module: "notes" },
+  { key: "reports", icon: ClipboardList, labelKey: "nav.reports", href: "/reports", defaultSize: "s", module: "reports" },
+  { key: "sparks", icon: Sparkles, labelKey: "nav.sparks", href: "/sparks", defaultSize: "s", module: "sparks" },
+  { key: "patents", icon: ScrollText, labelKey: "nav.patents", href: "/patents", defaultSize: "s", module: "patents" },
 ];
 const DEFAULT_ORDER = CARD_META.map((m) => m.key);
 const META = Object.fromEntries(CARD_META.map((m) => [m.key, m]));
@@ -72,6 +74,7 @@ export function DashboardPage() {
   const pinned = useDashLayout((s) => s.pinned);
   const sizes = useDashLayout((s) => s.sizes);
   const { toggleCollapsed, hide, show, togglePin, setSize, setOrder } = useDashLayout();
+  const enabled = useModules((s) => s.enabled);
 
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [hiddenMenu, setHiddenMenu] = useState(false);
@@ -85,9 +88,11 @@ export function DashboardPage() {
     const known = new Set(DEFAULT_ORDER);
     const head = order.filter((k) => known.has(k));
     const merged = [...head, ...DEFAULT_ORDER.filter((k) => !head.includes(k))];
-    const live = merged.filter((k) => !hidden.includes(k));
+    const live = merged.filter(
+      (k) => !hidden.includes(k) && (!META[k] || enabled[META[k].module]),
+    );
     return [...live.filter((k) => pinned.includes(k)), ...live.filter((k) => !pinned.includes(k))];
-  }, [order, hidden, pinned]);
+  }, [order, hidden, pinned, enabled]);
 
   const sizeOf = (k: string): CardSize => sizes[k] ?? META[k]?.defaultSize ?? "m";
 

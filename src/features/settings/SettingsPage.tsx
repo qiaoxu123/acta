@@ -1,9 +1,11 @@
 import { useState } from "react";
+import clsx from "clsx";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
-import { Cloud, Download, RefreshCw, Upload } from "lucide-react";
+import { Blocks, Check, Cloud, Download, RefreshCw, Upload } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
 import { Button, Field, TextInput } from "@/components/ui/controls";
+import { MODULES, enabledFromRole, useModules, type RoleKey } from "@/store/modules";
 import { exportAll, importAll, type Backup } from "@/lib/backup";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
@@ -54,6 +56,7 @@ export function SettingsPage() {
       <Toolbar title={t("set.title")} subtitle={t("set.subtitle")} />
       <div className="flex-1 overflow-y-auto px-5 py-4">
         <div className="mx-auto max-w-2xl space-y-6">
+          <ModulesSection />
           <SyncSection />
 
           <section className="rounded-md border border-border bg-surface-raised p-4">
@@ -82,6 +85,60 @@ export function SettingsPage() {
         </div>
       </div>
     </>
+  );
+}
+
+const ROLE_KEYS: RoleKey[] = ["student", "researcher", "faculty", "custom"];
+
+function ModulesSection() {
+  const { t } = useI18n();
+  const enabled = useModules((s) => s.enabled);
+  const setEnabled = useModules((s) => s.setEnabled);
+  const complete = useModules((s) => s.complete);
+
+  return (
+    <section className="rounded-md border border-border bg-surface-raised p-4">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-content">
+        <Blocks size={15} /> {t("set.modules")}
+      </h2>
+      <p className="mt-1 text-xs text-content-muted">{t("set.modulesDesc")}</p>
+
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <span className="text-2xs text-content-subtle">{t("set.applyRole")}:</span>
+        {ROLE_KEYS.map((r) => (
+          <button
+            key={r}
+            onClick={() => complete(enabledFromRole(r))}
+            className="rounded-full border border-border px-2.5 py-1 text-2xs text-content-muted hover:border-accent/40 hover:text-content"
+          >
+            {t(`role.${r}`)}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+        {MODULES.map((m) => (
+          <button
+            key={m.key}
+            onClick={() => setEnabled(m.key, !enabled[m.key])}
+            className={clsx(
+              "flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-left text-xs transition-colors",
+              enabled[m.key] ? "border-accent/40 bg-accent-soft/40 text-content" : "border-border text-content-subtle",
+            )}
+          >
+            <span
+              className={clsx(
+                "grid h-4 w-4 place-items-center rounded border",
+                enabled[m.key] ? "border-accent bg-accent text-accent-fg" : "border-border",
+              )}
+            >
+              {enabled[m.key] && <Check size={11} />}
+            </span>
+            {t(m.labelKey)}
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
 

@@ -21,41 +21,45 @@ import {
 import { useState } from "react";
 import { applyTheme, getStoredTheme, type Theme } from "@/lib/theme";
 import { useI18n } from "@/lib/i18n";
+import { useModules, type ModuleKey } from "@/store/modules";
 
 const TOP = { to: "/", key: "nav.dashboard", icon: LayoutDashboard, end: true };
 
-const GROUPS = [
+const GROUPS: {
+  label: string;
+  items: { to: string; key: string; icon: typeof Sparkles; module?: ModuleKey }[];
+}[] = [
   {
     label: "side.research",
     items: [
-      { to: "/sparks", key: "nav.sparks", icon: Sparkles },
-      { to: "/ideas", key: "nav.ideas", icon: Lightbulb },
-      { to: "/notes", key: "nav.notes", icon: NotebookPen },
-      { to: "/reports", key: "nav.reports", icon: ClipboardList },
+      { to: "/sparks", key: "nav.sparks", icon: Sparkles, module: "sparks" },
+      { to: "/ideas", key: "nav.ideas", icon: Lightbulb, module: "ideas" },
+      { to: "/notes", key: "nav.notes", icon: NotebookPen, module: "notes" },
+      { to: "/reports", key: "nav.reports", icon: ClipboardList, module: "reports" },
     ],
   },
   {
     // Things to keep an eye on (deadlines, review obligations) — not own work.
     label: "side.tracking",
     items: [
-      { to: "/journals", key: "nav.journals", icon: BookText },
-      { to: "/conferences", key: "nav.conferences", icon: CalendarClock },
-      { to: "/reviews", key: "nav.reviews", icon: Library },
+      { to: "/journals", key: "nav.journals", icon: BookText, module: "venues" },
+      { to: "/conferences", key: "nav.conferences", icon: CalendarClock, module: "venues" },
+      { to: "/reviews", key: "nav.reviews", icon: Library, module: "reviews" },
     ],
   },
   {
     // Own scholarly output.
     label: "side.results",
     items: [
-      { to: "/papers", key: "nav.papers", icon: FileText },
-      { to: "/patents", key: "nav.patents", icon: ScrollText },
+      { to: "/papers", key: "nav.papers", icon: FileText, module: "papers" },
+      { to: "/patents", key: "nav.patents", icon: ScrollText, module: "patents" },
     ],
   },
   {
     label: "side.projects",
     items: [
-      { to: "/projects/vertical", key: "nav.projects.vertical", icon: Landmark },
-      { to: "/projects/horizontal", key: "nav.projects.horizontal", icon: Building2 },
+      { to: "/projects/vertical", key: "nav.projects.vertical", icon: Landmark, module: "projects" },
+      { to: "/projects/horizontal", key: "nav.projects.horizontal", icon: Building2, module: "projects" },
     ],
   },
 ];
@@ -71,6 +75,13 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export function Sidebar() {
   const { t, locale, setLocale } = useI18n();
   const [theme, setTheme] = useState<Theme>(getStoredTheme());
+  const enabled = useModules((s) => s.enabled);
+
+  // Hide disabled modules; drop a group entirely once it has nothing to show.
+  const groups = GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((it) => !it.module || enabled[it.module]),
+  })).filter((g) => g.items.length > 0);
 
   const toggleTheme = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
@@ -103,7 +114,7 @@ export function Sidebar() {
           {t(TOP.key)}
         </NavLink>
 
-        {GROUPS.map((g) => (
+        {groups.map((g) => (
           <div key={g.label} className="mt-3">
             <p className="px-2.5 pb-1 text-2xs font-semibold uppercase tracking-wide text-content-subtle">
               {t(g.label)}

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.13.0] - 2026-06-23
+
+First-run identity picker + per-module on/off — tailor Acta to how you work.
+
+### Features
+
+- **First-run onboarding**: on a fresh install an overlay asks for your identity
+  — Student / Researcher (PhD) / Faculty (PI) / Custom — and presets which
+  modules are enabled (e.g. a student skips peer-review, projects and patents).
+  The module checklist is editable before you confirm.
+- **Module on/off** (`acta.modules`): disabled modules disappear from the
+  sidebar (empty groups collapse) and the dashboard. A new **Modules** section in
+  Settings toggles each module individually or re-applies a role preset, so the
+  choice isn't locked to first run.
+
+### Design Rationale
+
+- Modules are view-level visibility, not data deletion — turning a module off
+  only hides it; the records and routes remain, so re-enabling restores
+  everything untouched. Default (pre-onboarding) is all-on, so nothing is hidden
+  until the user actively chooses.
+
 ## [0.12.0] - 2026-06-23
 
 Work Reports module — weekly progress write-ups for group meetings.
