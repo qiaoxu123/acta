@@ -42,7 +42,8 @@ import {
 } from "../db/repositories/ideas";
 import { createSpark, listSparks, promoteSpark, updateSpark } from "../db/repositories/sparks";
 import { createNote, listNotes, updateNote } from "../db/repositories/notes";
-import { createReport, listReports, updateReport } from "../db/repositories/reports";
+import { createFunding, listFunding, updateFunding } from "../db/repositories/funding";
+import { createStudent, listStudents, updateStudent } from "../db/repositories/students";
 import { getAgenda } from "../db/repositories/dashboard";
 import { insert } from "../db/mutate";
 import { select } from "../db/client";
@@ -389,22 +390,40 @@ async function upsertNote(input: Dict) {
   return { ok: true, note_id: id, mode: "created" };
 }
 
-// --- Reports -----------------------------------------------------------------
+// --- Funding -----------------------------------------------------------------
 
-async function upsertReport(input: Dict) {
-  const { match = {}, report } = input;
-  const all = await listReports("all");
+async function upsertFunding(input: Dict) {
+  const { match = {}, funding } = input;
+  const all = await listFunding("all");
   const existing =
-    (match.id && all.find((r) => r.id === match.id)) ||
-    (match.title && all.find((r) => ci(r.title, match.title))) ||
-    all.find((r) => ci(r.title, report.title)) ||
+    (match.id && all.find((f) => f.id === match.id)) ||
+    (match.title && all.find((f) => ci(f.title, match.title))) ||
+    all.find((f) => ci(f.title, funding.title)) ||
     null;
   if (existing) {
-    await updateReport(existing.id, defined(report));
-    return { ok: true, report_id: existing.id, mode: "updated" };
+    await updateFunding(existing.id, defined(funding));
+    return { ok: true, funding_id: existing.id, mode: "updated" };
   }
-  const id = await createReport(defined(report) as any);
-  return { ok: true, report_id: id, mode: "created" };
+  const id = await createFunding(defined({ ...funding, spent: funding.spent ?? 0 }) as any);
+  return { ok: true, funding_id: id, mode: "created" };
+}
+
+// --- Students ----------------------------------------------------------------
+
+async function upsertStudent(input: Dict) {
+  const { match = {}, student } = input;
+  const all = await listStudents("all");
+  const existing =
+    (match.id && all.find((s) => s.id === match.id)) ||
+    (match.name && all.find((s) => ci(s.name, match.name))) ||
+    all.find((s) => ci(s.name, student.name)) ||
+    null;
+  if (existing) {
+    await updateStudent(existing.id, defined(student));
+    return { ok: true, student_id: existing.id, mode: "updated" };
+  }
+  const id = await createStudent(defined(student) as any);
+  return { ok: true, student_id: id, mode: "created" };
 }
 
 /** Validate that an input object has the action's top-level required keys. */
@@ -479,10 +498,14 @@ export async function applyAction(name: string, input: Dict = {}): Promise<any> 
       return { ok: true, items: await listNotes((input.scope as ListScope) || "all") };
     case "upsert_note":
       return upsertNote(input);
-    case "list_reports":
-      return { ok: true, items: await listReports((input.scope as ListScope) || "all") };
-    case "upsert_report":
-      return upsertReport(input);
+    case "list_funding":
+      return { ok: true, items: await listFunding((input.scope as ListScope) || "all") };
+    case "upsert_funding":
+      return upsertFunding(input);
+    case "list_students":
+      return { ok: true, items: await listStudents((input.scope as ListScope) || "all") };
+    case "upsert_student":
+      return upsertStudent(input);
     case "list_tasks": {
       const cond = input.include_done ? "" : "AND (done IS NULL OR done = 0)";
       const items = await select(

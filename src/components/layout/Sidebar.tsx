@@ -1,22 +1,25 @@
 import { NavLink } from "react-router-dom";
 import clsx from "clsx";
 import {
+  Banknote,
   BookText,
   Building2,
   CalendarClock,
-  ClipboardList,
   FileText,
   Landmark,
   LayoutDashboard,
   Library,
   Lightbulb,
   NotebookPen,
+  PanelLeftClose,
+  PanelLeftOpen,
   Sparkles,
   Languages,
   Moon,
   ScrollText,
   Settings,
   Sun,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { applyTheme, getStoredTheme, type Theme } from "@/lib/theme";
@@ -35,7 +38,6 @@ const GROUPS: {
       { to: "/sparks", key: "nav.sparks", icon: Sparkles, module: "sparks" },
       { to: "/ideas", key: "nav.ideas", icon: Lightbulb, module: "ideas" },
       { to: "/notes", key: "nav.notes", icon: NotebookPen, module: "notes" },
-      { to: "/reports", key: "nav.reports", icon: ClipboardList, module: "reports" },
     ],
   },
   {
@@ -45,6 +47,7 @@ const GROUPS: {
       { to: "/journals", key: "nav.journals", icon: BookText, module: "venues" },
       { to: "/conferences", key: "nav.conferences", icon: CalendarClock, module: "venues" },
       { to: "/reviews", key: "nav.reviews", icon: Library, module: "reviews" },
+      { to: "/students", key: "nav.students", icon: Users, module: "students" },
     ],
   },
   {
@@ -60,6 +63,7 @@ const GROUPS: {
     items: [
       { to: "/projects/vertical", key: "nav.projects.vertical", icon: Landmark, module: "projects" },
       { to: "/projects/horizontal", key: "nav.projects.horizontal", icon: Building2, module: "projects" },
+      { to: "/funding", key: "nav.funding", icon: Banknote, module: "funding" },
     ],
   },
 ];
@@ -72,10 +76,19 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
       : "text-content-muted hover:bg-surface-raised hover:text-content",
   );
 
+const COLLAPSED_KEY = "acta.sidebar.collapsed";
+
 export function Sidebar() {
   const { t, locale, setLocale } = useI18n();
   const [theme, setTheme] = useState<Theme>(getStoredTheme());
   const enabled = useModules((s) => s.enabled);
+  const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem(COLLAPSED_KEY) === "1");
+
+  const toggleCollapsed = () => {
+    const v = !collapsed;
+    setCollapsed(v);
+    localStorage.setItem(COLLAPSED_KEY, v ? "1" : "0");
+  };
 
   // Hide disabled modules; drop a group entirely once it has nothing to show.
   const groups = GROUPS.map((g) => ({
@@ -94,44 +107,73 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-full w-full flex-col border-r border-border bg-surface-sunken">
-      {/* The app logo now lives in the global top bar; the sidebar is just nav. */}
+      {/* Logo + collapse toggle */}
+      <div className={clsx(
+        "flex items-center border-b border-border",
+        collapsed ? "justify-center px-1 py-3" : "justify-between px-4 py-3"
+      )}>
+        <div className={clsx("flex items-center gap-2", collapsed ? "justify-center" : "")}>
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded bg-accent text-sm font-bold text-accent-fg">A</span>
+          {!collapsed && <span className="text-sm font-semibold tracking-tight text-content">Acta</span>}
+        </div>
+        {!collapsed && (
+          <button onClick={toggleCollapsed} title={t("nav.back")} className="rounded p-1 text-content-subtle hover:text-content">
+            <PanelLeftClose size={14} />
+          </button>
+        )}
+      </div>
+
       <nav className="flex-1 overflow-y-auto px-2 pb-1 pt-2">
-        <NavLink to={TOP.to} end={TOP.end} className={linkClass}>
+        {/* Dashboard always visible */}
+        <NavLink to={TOP.to} end={TOP.end} className={linkClass} title={t(TOP.key)}>
           <TOP.icon size={16} />
-          {t(TOP.key)}
+          {!collapsed && t(TOP.key)}
         </NavLink>
 
         {groups.map((g) => (
-          <div key={g.label} className="mt-3">
-            <p className="px-2.5 pb-1 text-2xs font-semibold uppercase tracking-wide text-content-subtle">
-              {t(g.label)}
-            </p>
+          <div key={g.label} className={collapsed ? "mt-2" : "mt-3"}>
+            {!collapsed && (
+              <p className="px-2.5 pb-1 text-2xs font-semibold uppercase tracking-wide text-content-subtle">
+                {t(g.label)}
+              </p>
+            )}
             <div className="space-y-0.5">
               {g.items.map(({ to, key, icon: Icon }) => (
-                <NavLink key={to} to={to} className={linkClass}>
+                <NavLink key={to} to={to} className={linkClass} title={t(key)}>
                   <Icon size={16} />
-                  {t(key)}
+                  {!collapsed && t(key)}
                 </NavLink>
               ))}
             </div>
           </div>
         ))}
+
+        {/* Collapse-toggle in collapsed mode: expand button at the bottom */}
+        {collapsed && (
+          <div className="mt-3 border-t border-border pt-3">
+            <button onClick={toggleCollapsed} className={btnClass} title={t("nav.back")}>
+              <PanelLeftOpen size={16} />
+            </button>
+          </div>
+        )}
       </nav>
 
-      <div className="space-y-0.5 border-t border-border px-2 py-2">
-        <NavLink to="/settings" className={linkClass}>
-          <Settings size={16} />
-          {t("nav.settings")}
-        </NavLink>
-        <button onClick={toggleTheme} className={btnClass}>
-          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-          {theme === "dark" ? t("theme.light") : t("theme.dark")}
-        </button>
-        <button onClick={() => setLocale(locale === "zh" ? "en" : "zh")} className={btnClass}>
-          <Languages size={16} />
-          {t("lang.label")}
-        </button>
-      </div>
+      {!collapsed && (
+        <div className="space-y-0.5 border-t border-border px-2 py-2">
+          <NavLink to="/settings" className={linkClass}>
+            <Settings size={16} />
+            {t("nav.settings")}
+          </NavLink>
+          <button onClick={toggleTheme} className={btnClass}>
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            {theme === "dark" ? t("theme.light") : t("theme.dark")}
+          </button>
+          <button onClick={() => setLocale(locale === "zh" ? "en" : "zh")} className={btnClass}>
+            <Languages size={16} />
+            {t("lang.label")}
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

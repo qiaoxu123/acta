@@ -15,7 +15,8 @@ export type ModuleKey =
   | "ideas"
   | "sparks"
   | "notes"
-  | "reports";
+  | "funding"
+  | "students";
 
 export const MODULES: { key: ModuleKey; labelKey: string }[] = [
   { key: "venues", labelKey: "mod.venues" },
@@ -26,15 +27,16 @@ export const MODULES: { key: ModuleKey; labelKey: string }[] = [
   { key: "ideas", labelKey: "nav.ideas" },
   { key: "sparks", labelKey: "nav.sparks" },
   { key: "notes", labelKey: "nav.notes" },
-  { key: "reports", labelKey: "nav.reports" },
+  { key: "funding", labelKey: "nav.funding" },
+  { key: "students", labelKey: "nav.students" },
 ];
 const KEYS = MODULES.map((m) => m.key);
 
 export type RoleKey = "student" | "researcher" | "faculty" | "custom";
 
 export const ROLE_MODULES: Record<RoleKey, ModuleKey[]> = {
-  student: ["ideas", "sparks", "notes", "reports", "papers", "venues"],
-  researcher: ["ideas", "sparks", "notes", "reports", "papers", "venues", "patents", "reviews"],
+  student: ["ideas", "sparks", "notes", "papers", "venues"],
+  researcher: ["ideas", "sparks", "notes", "funding", "papers", "venues", "patents", "reviews", "students"],
   faculty: [...KEYS],
   custom: [...KEYS],
 };

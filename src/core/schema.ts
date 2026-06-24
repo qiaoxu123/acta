@@ -507,36 +507,77 @@ export const ACTIONS: ActionDef[] = [
     },
   },
 
-  // --- Reports ---------------------------------------------------------------
+  // --- Funding ---------------------------------------------------------------
   {
-    name: "list_reports",
+    name: "list_funding",
     mutates: false,
-    description: "List periodic work-progress reports.",
+    description: "List tracked grants/contracts with budget and balance.",
     inputSchema: { type: "object", properties: { scope: SCOPE } },
   },
   {
-    name: "upsert_report",
+    name: "upsert_funding",
     mutates: true,
-    description: "Create or update a work report. Matches by id, then title.",
+    description: "Create or update a funding entry. Matches by id, then title.",
     inputSchema: {
       type: "object",
       properties: {
-        match: {
-          type: "object",
-          properties: { id: { type: "string" }, title: { type: "string" } },
-        },
-        report: {
+        match: { type: "object", properties: { id: { type: "string" }, title: { type: "string" } } },
+        funding: {
           type: "object",
           properties: {
             title: { type: "string" },
-            period_start: DATE,
-            period_end: DATE,
-            body: { type: "string", description: "Sectioned Markdown" },
+            source: { type: "string" },
+            number: { type: "string" },
+            total_amount: { type: "number" },
+            spent: { type: "number" },
+            category: { enum: ["grant", "contract", "other"] },
+            status: { enum: ["active", "completed", "closed"] },
+            start_date: DATE,
+            end_date: DATE,
+            notes: { type: "string" },
           },
           required: ["title"],
         },
       },
-      required: ["report"],
+      required: ["funding"],
+    },
+  },
+
+  // --- Students --------------------------------------------------------------
+  {
+    name: "list_students",
+    mutates: false,
+    description: "List advisee students with level, status, and exam dates.",
+    inputSchema: { type: "object", properties: { scope: SCOPE } },
+  },
+  {
+    name: "upsert_student",
+    mutates: true,
+    description: "Create or update a student record. Matches by id, then name.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        match: { type: "object", properties: { id: { type: "string" }, name: { type: "string" } } },
+        student: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            level: { enum: ["bachelor", "master", "phd"] },
+            status: { enum: ["applying", "active", "graduated", "transferred"] },
+            email: { type: "string" },
+            phone: { type: "string" },
+            direction: { type: "string" },
+            co_advisor: { type: "string" },
+            enrollment_year: { type: "string", description: "YYYY" },
+            graduation_year: { type: "string", description: "YYYY" },
+            exam_date: DATE,
+            interview_date: DATE,
+            notes: { type: "string" },
+          },
+          required: ["name"],
+        },
+      },
+      required: ["student"],
     },
   },
 

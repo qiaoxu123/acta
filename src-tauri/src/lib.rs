@@ -71,6 +71,18 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0011_notes_folder.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 12,
+            description: "funding: grant/contract budget tracking",
+            sql: include_str!("../migrations/0012_funding.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 13,
+            description: "students: advisee tracking & exam dates",
+            sql: include_str!("../migrations/0013_students.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

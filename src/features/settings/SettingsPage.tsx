@@ -2,7 +2,8 @@ import { useState } from "react";
 import clsx from "clsx";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
-import { Blocks, Check, Cloud, Download, RefreshCw, Upload } from "lucide-react";
+import { fetch } from "@tauri-apps/plugin-http";
+import { Blocks, Check, Cloud, Database, Download, RefreshCw, Upload } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
 import { Button, Field, TextInput } from "@/components/ui/controls";
 import { MODULES, enabledFromRole, useModules, type RoleKey } from "@/store/modules";
@@ -10,7 +11,7 @@ import { exportAll, importAll, type Backup } from "@/lib/backup";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
-import { loadDav, saveDav, type WebDavConfig } from "@/sync/config";
+import { loadDav, loadPg, saveDav, savePg, type PgConfig, type WebDavConfig } from "@/sync/config";
 import { davCheck } from "@/sync/webdav";
 import { useSync, startAutoSync } from "@/sync/store";
 
@@ -57,6 +58,7 @@ export function SettingsPage() {
       <div className="flex-1 overflow-y-auto px-5 py-4">
         <div className="mx-auto max-w-2xl space-y-6">
           <ModulesSection />
+          <PgSyncSection />
           <SyncSection />
 
           <section className="rounded-md border border-border bg-surface-raised p-4">
@@ -89,6 +91,90 @@ export function SettingsPage() {
 }
 
 const ROLE_KEYS: RoleKey[] = ["student", "researcher", "faculty", "custom"];
+
+function PgSyncSection() {
+  const { t } = useI18n();
+  const [cfg, setCfg] = useState<PgConfig>(() => loadPg());
+  const [note, setNote] = useState<string | null>(null);
+
+  const set = <K extends keyof PgConfig>(k: K, v: PgConfig[K]) => setCfg((c) => ({ ...c, [k]: v }));
+  const persist = () => {
+    savePg(cfg);
+    setNote(t("set.pgSaved"));
+    if (cfg.enabled) startAutoSync();
+  };
+  // Quick connectivity probe: GET the snapshot endpoint; a 200 or 404 means
+  // the API is reachable and the token is valid (401/403 = auth fail).
+  const test = async () => {
+    savePg(cfg);
+    try {
+      const res = await fetch(`${cfg.apiUrl}/snapshot`, {
+        method: "GET",
+        headers: {
+          authorization: `Bearer ${cfg.token}`,
+          "content-type": "application/json",
+        },
+      });
+      if (res.status === 401 || res.status === 403)
+        setNote(t("set.pgAuthFail", { code: res.status }));
+      else if (res.status >= 500)
+        setNote(t("set.pgServerError", { code: res.status }));
+      else
+        setNote(t("set.davOk"));
+    } catch (e) {
+      setNote(String(e instanceof Error ? e.message : e));
+    }
+  };
+
+  return (
+    <section className="rounded-md border border-border bg-surface-raised p-4">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-content">
+        <Database size={15} /> {t("set.pgSync")}
+      </h2>
+      <p className="mt-1 text-xs text-content-muted">{t("set.pgSyncDesc")}</p>
+
+      <label className="mt-3 flex items-center gap-2 text-xs text-content">
+        <input
+          type="checkbox"
+          checked={cfg.enabled}
+          onChange={(e) => set("enabled", e.target.checked)}
+        />
+        {t("set.pgEnable")}
+      </label>
+
+      <div className="mt-3 space-y-3">
+        <Field label={t("set.pgUrl")}>
+          <TextInput
+            value={cfg.apiUrl}
+            placeholder="https://your-server.com:3001"
+            onChange={(e) => set("apiUrl", e.target.value)}
+          />
+        </Field>
+        <Field label={t("set.pgToken")}>
+          <TextInput
+            type="password"
+            value={cfg.token}
+            placeholder={t("set.pgTokenHint")}
+            onChange={(e) => set("token", e.target.value)}
+          />
+        </Field>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Button variant="primary" onClick={persist}>
+          {t("common.save")}
+        </Button>
+        <Button onClick={test}>{t("set.davTest")}</Button>
+      </div>
+
+      {note && (
+        <p className="mt-2 break-words rounded bg-surface-sunken p-2 text-2xs text-content-muted">
+          {note}
+        </p>
+      )}
+    </section>
+  );
+}
 
 function ModulesSection() {
   const { t } = useI18n();

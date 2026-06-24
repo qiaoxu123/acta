@@ -13,7 +13,8 @@ import { listProjects, projectDueMap } from "@/db/repositories/projects";
 import { listIdeas } from "@/db/repositories/ideas";
 import { listSparks } from "@/db/repositories/sparks";
 import { listNotes } from "@/db/repositories/notes";
-import { listReports } from "@/db/repositories/reports";
+import { listFunding } from "@/db/repositories/funding";
+import { listStudents } from "@/db/repositories/students";
 import { getAgenda } from "@/db/repositories/dashboard";
 import type { TFn } from "@/lib/i18n";
 
@@ -68,7 +69,7 @@ export async function loadDashboard(t: TFn): Promise<DashData> {
   const now = new Date().toISOString();
   const soon = new Date(Date.now() + 14 * 864e5).toISOString();
 
-  const [manuscripts, dueMap, papers, venues, patents, projects, projDue, ideas, sparks, notes, reports, agenda, taskRows] =
+  const [manuscripts, dueMap, papers, venues, patents, projects, projDue, ideas, sparks, notes, funds, students, agenda, taskRows] =
     await Promise.all([
       listManuscripts("active"),
       reviewDueMap(),
@@ -80,7 +81,8 @@ export async function loadDashboard(t: TFn): Promise<DashData> {
       listIdeas("active"),
       listSparks("active"),
       listNotes("active"),
-      listReports("active"),
+      listFunding("active"),
+      listStudents("active"),
       getAgenda(),
       select<{ n: number }>(
         `SELECT COUNT(*) AS n FROM tasks WHERE deleted_at IS NULL AND done = 0`,
@@ -260,18 +262,6 @@ export async function loadDashboard(t: TFn): Promise<DashData> {
     cards.notes = { count: notes.length, rows, pills: [] };
   }
 
-  // --- Reports ---------------------------------------------------------------
-  {
-    const rows = reports.slice(0, ROW_CAP).map((r) => ({
-      id: r.id,
-      title: r.title,
-      sub: r.period_start && r.period_end ? `${r.period_start} ~ ${r.period_end}` : "",
-      href: `/reports/item/${r.id}`,
-      date: null,
-    }));
-    cards.reports = { count: reports.length, rows, pills: [] };
-  }
-
   // --- Patents ---------------------------------------------------------------
   {
     const rows = [...patents]
@@ -292,6 +282,49 @@ export async function loadDashboard(t: TFn): Promise<DashData> {
         pill(t("dash.g.drafting"), n(["drafting"]), "neutral"),
         pill(t("dash.g.reviewing"), n(["filed", "substantive"]), "accent"),
         pill(t("dash.g.done"), n(["granted"]), "ok"),
+      ].filter((p) => p.n > 0),
+    };
+  }
+
+  // --- Funding ---------------------------------------------------------------
+  {
+    const rows = funds.slice(0, ROW_CAP).map((f) => ({
+      id: f.id,
+      title: f.title,
+      sub: [`¥${((f.total_amount ?? 0) - (f.spent ?? 0)).toLocaleString()}`, f.source].filter(Boolean).join(" · "),
+      href: `/funding/${f.id}`,
+      date: null,
+    }));
+    const n = (g: string[]) => funds.filter((f) => g.includes(f.status)).length;
+    cards.funding = {
+      count: funds.length,
+      rows,
+      pills: [
+        pill(t("dash.g.active"), n(["active"]), "ok"),
+        pill(t("dash.g.done"), n(["completed", "closed"]), "neutral"),
+      ].filter((p) => p.n > 0),
+    };
+  }
+
+  // --- Students --------------------------------------------------------------
+  {
+    const rows = [...students]
+      .sort((a, b) => (b.enrollment_year ?? "").localeCompare(a.enrollment_year ?? ""))
+      .slice(0, ROW_CAP)
+      .map((s) => ({
+        id: s.id,
+        title: s.name,
+        sub: [t(`stu.level.${s.level}`), s.direction].filter(Boolean).join(" · "),
+        href: `/students/${s.id}`,
+        date: null,
+      }));
+    const n = (g: string[]) => students.filter((s) => g.includes(s.status)).length;
+    cards.students = {
+      count: students.length,
+      rows,
+      pills: [
+        pill(t("dash.g.applying"), n(["applying"]), "warn"),
+        pill(t("dash.g.active"), n(["active"]), "ok"),
       ].filter((p) => p.n > 0),
     };
   }

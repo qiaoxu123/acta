@@ -15,8 +15,8 @@ import { IdeasPage } from "@/features/ideas/IdeasPage";
 import { IdeaItemPage } from "@/features/ideas/IdeaItemPage";
 import { SparksPage } from "@/features/sparks/SparksPage";
 import { NotesPage } from "@/features/notes/NotesPage";
-import { ReportsPage } from "@/features/reports/ReportsPage";
-import { ReportItemPage } from "@/features/reports/ReportItemPage";
+import { FundingPage } from "@/features/funding/FundingPage";
+import { StudentsPage } from "@/features/students/StudentsPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 
 export const routes: RouteObject[] = [
@@ -52,12 +52,13 @@ export const routes: RouteObject[] = [
       { path: "sparks", element: <SparksPage /> },
       { path: "notes", element: <NotesPage /> },
       { path: "notes/:id", element: <NotesPage /> },
-      { path: "reports", element: <ReportsPage /> },
-      { path: "reports/item/:id", element: <ReportItemPage /> },
-      { path: "reports/:id", element: <ReportsPage /> },
       { path: "ideas", element: <IdeasPage /> },
       { path: "ideas/item/:id", element: <IdeaItemPage /> },
       { path: "ideas/:id", element: <IdeasPage /> },
+      { path: "funding", element: <FundingPage /> },
+      { path: "funding/:id", element: <FundingPage /> },
+      { path: "students", element: <StudentsPage /> },
+      { path: "students/:id", element: <StudentsPage /> },
       { path: "settings", element: <SettingsPage /> },
     ],
   },

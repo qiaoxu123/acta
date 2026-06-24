@@ -280,6 +280,21 @@ export interface Report extends SyncFields {
   archived_at: string | null;
 }
 
+/** Grant/contract funding tracker: budget, expenditure, balance. */
+export interface FundingRecord {
+  title: string;
+  source: string | null;
+  number: string | null;
+  total_amount: number | null;
+  spent: number;
+  category: string;
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
+  notes: string | null;
+  archived_at: string | null;
+}
+
 /** The set of tables that participate in JSON export/import & future sync. */
 export const ALL_TABLES = [
   "venues",
@@ -295,6 +310,8 @@ export const ALL_TABLES = [
   "sparks",
   "notes",
   "reports",
+  "funding",
+  "students",
   "tasks",
 ] as const;
 export type TableName = (typeof ALL_TABLES)[number];

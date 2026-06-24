@@ -76,13 +76,6 @@ export function TopBar() {
       data-tauri-drag-region="deep"
       className="flex h-11 shrink-0 items-center gap-1 border-b border-border bg-surface-sunken pl-[80px] pr-2"
     >
-      <div className="flex shrink-0 items-center gap-2 pr-1">
-        <span className="grid h-6 w-6 place-items-center rounded bg-accent text-sm font-bold text-accent-fg">
-          A
-        </span>
-        <span className="text-sm font-semibold tracking-tight text-content">Acta</span>
-      </div>
-      <div className="mx-1 h-4 w-px shrink-0 bg-border" />
       <div className="flex shrink-0 items-center gap-0.5">
         <button onClick={() => navigate(-1)} title={t("nav.back")} className={navBtn}>
           <ChevronLeft size={15} />

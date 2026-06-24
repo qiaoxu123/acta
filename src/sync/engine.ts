@@ -1,8 +1,7 @@
 import { exportAll, type Backup } from "@/lib/backup";
 import { markAllClean, upsertRaw } from "@/db/mutate";
 import { ALL_TABLES } from "@/db/types";
-import { davGet, davPut } from "./webdav";
-import { DAV_FILE, type WebDavConfig } from "./config";
+import { type SyncTransport } from "./config";
 
 type Row = Record<string, any>;
 const ts = (r: Row) => String(r.updated_at || "");
@@ -36,9 +35,13 @@ export interface SyncResult {
  * One sync cycle: pull the remote snapshot, merge, apply remote-newer rows
  * locally, push the merged snapshot back, mark clean. Converges all devices.
  */
-export async function runSync(cfg: WebDavConfig): Promise<SyncResult> {
+/**
+ * One sync cycle against a transport (WebDAV or PG REST API). Pulls the remote
+ * snapshot, merges with local, pushes back, marks clean.
+ */
+export async function runSync(tx: SyncTransport): Promise<SyncResult> {
   const local = await exportAll();
-  const remoteText = await davGet(cfg, DAV_FILE);
+  const remoteText = await tx.get();
   const remote = remoteText ? (JSON.parse(remoteText) as Backup) : null;
 
   const pushed = ALL_TABLES.reduce(
@@ -64,7 +67,7 @@ export async function runSync(cfg: WebDavConfig): Promise<SyncResult> {
     }
   }
 
-  await davPut(cfg, DAV_FILE, JSON.stringify(merged));
+  await tx.put(JSON.stringify(merged));
   await markAllClean();
   return { pulled, pushed };
 }

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import {
   AlarmClock,
+  Banknote,
   BookText,
   CalendarClock,
   ChevronDown,
@@ -13,13 +14,13 @@ import {
   GripVertical,
   Landmark,
   Library,
-  ClipboardList,
   Lightbulb,
   Maximize2,
   NotebookPen,
   Pin,
   ScrollText,
   Sparkles,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
@@ -50,8 +51,9 @@ const CARD_META: CardMeta[] = [
   { key: "projects", icon: Landmark, labelKey: "side.projects", href: "/projects/vertical", defaultSize: "m", module: "projects" },
   { key: "ideas", icon: Lightbulb, labelKey: "nav.ideas", href: "/ideas", defaultSize: "m", module: "ideas" },
   { key: "notes", icon: NotebookPen, labelKey: "nav.notes", href: "/notes", defaultSize: "s", module: "notes" },
-  { key: "reports", icon: ClipboardList, labelKey: "nav.reports", href: "/reports", defaultSize: "s", module: "reports" },
   { key: "sparks", icon: Sparkles, labelKey: "nav.sparks", href: "/sparks", defaultSize: "s", module: "sparks" },
+  { key: "students", icon: Users, labelKey: "nav.students", href: "/students", defaultSize: "s", module: "students" },
+  { key: "funding", icon: Banknote, labelKey: "nav.funding", href: "/funding", defaultSize: "s", module: "funding" },
   { key: "patents", icon: ScrollText, labelKey: "nav.patents", href: "/patents", defaultSize: "s", module: "patents" },
 ];
 const DEFAULT_ORDER = CARD_META.map((m) => m.key);
