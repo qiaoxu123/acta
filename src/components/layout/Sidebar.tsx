@@ -94,21 +94,8 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-full w-full flex-col border-r border-border bg-surface-sunken">
-      {/* Top padding clears the overlaid macOS traffic-light buttons. `deep`
-          makes the whole header (incl. its children) a drag region, and Tauri's
-          native handler does double-click-to-zoom — no JS toggle (which would
-          double-fire and cancel itself out). */}
-      <div
-        data-tauri-drag-region="deep"
-        className="flex items-center gap-2 px-4 pb-2.5 pt-8"
-      >
-        <span className="grid h-6 w-6 place-items-center rounded bg-accent text-accent-fg text-sm font-bold">
-          A
-        </span>
-        <span className="text-sm font-semibold tracking-tight">Acta</span>
-      </div>
-
-      <nav className="flex-1 overflow-y-auto px-2 py-1">
+      {/* The app logo now lives in the global top bar; the sidebar is just nav. */}
+      <nav className="flex-1 overflow-y-auto px-2 pb-1 pt-2">
         <NavLink to={TOP.to} end={TOP.end} className={linkClass}>
           <TOP.icon size={16} />
           {t(TOP.key)}

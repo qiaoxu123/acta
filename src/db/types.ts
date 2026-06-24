@@ -84,7 +84,12 @@ export interface ReviewedManuscript extends SyncFields {
   archived_at: string | null;
 }
 
-export type Recommendation = "accept" | "minor" | "major" | "reject";
+export type Recommendation =
+  | "accept"
+  | "minor"
+  | "major"
+  | "reject_resubmit"
+  | "reject";
 
 export interface ReviewRound extends SyncFields {
   manuscript_id: string;
@@ -261,6 +266,7 @@ export interface Note extends SyncFields {
   title: string;
   body: string | null;
   tags: string | null;
+  folder: string | null; // Obsidian-style path "读论文/VLN"; null = root / 未分类
   pinned: number;
   archived_at: string | null;
 }

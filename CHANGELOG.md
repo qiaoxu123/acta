@@ -1,5 +1,56 @@
 # Changelog
 
+## [0.14.0] - 2026-06-24
+
+Notes redesigned as an Obsidian/wolai-style workspace with Typora-like WYSIWYG
+editor; single-span top bar; dashboard widgets.
+
+### Features
+
+- **Notes workspace**: Outline-style layout — left explorer (folder tree, tag
+  pills), right content area (document list or full editor). **Milkdown Crepe**
+  WYSIWYG Markdown editor — renders headings/bold/lists/tables/code/`$LaTeX$` as
+  you type, KaTeX math support, auto-save. Folder organization via path strings
+  (`读论文/VLN`), tags via comma-separated input. Toggleable right **outline**
+  parsed from `##`/`###` headings. Content centered with breathing room
+  (`max-w-3xl`).
+- **Single-span top bar** (ToDesk-style): logo + back/forward + breadcrumb +
+  page actions all on the traffic-light row — no wasted strip. The old per-page
+  header band is removed; Toolbar now portals into the top bar's right slot.
+- **Dashboard cards = macOS widgets**: resizable (S/M/L), pinnable (pinned float
+  up), collapsible, hideable, drag-reordered; denser auto-fill grid. All layout
+  choices persisted per-card (`acta.dash.layout`).
+- **Idea-log timeline**: master/detail sidebar (compact selectable git-graph)
+  with Markdown-rendered reading pane, editable in place. All 34 idea_log
+  entries reformatted to structured Markdown (tables, lists, bold).
+- **Notes API** (`list_notes` / `upsert_note`) covers folder/tags/body; schema
+  synced.
+- **First-run onboarding**: identity picker (student/researcher/faculty/custom)
+  presets enabled modules; adjustable in Settings.
+- **Notes folder migration** (v11): `ALTER TABLE notes ADD COLUMN folder TEXT`.
+
+### Fixes
+
+- Double-click-to-maximize: removed redundant JS toggle that double-fired and
+  cancelled Tauri's native handler; switched drag regions to `deep`.
+- Review recommendation `reject_resubmit` added.
+
+## [0.13.1] - 2026-06-23
+
+Add a **"reject & resubmit"** review recommendation.
+
+### Features
+
+- **`reject_resubmit` recommendation**: review rounds can now record "reject &
+  resubmit" (拒稿重投), sitting between "major" and "reject". Added to the
+  recommendation type, MCP/import schema, the round form dropdown, the badge
+  tone map (urgent), and English/Chinese labels.
+
+### Notes & Caveats
+
+- Existing rows are unaffected; the value is additive. Any prior review stored as
+  `reject` to approximate this outcome can be updated to `reject_resubmit`.
+
 ## [0.13.0] - 2026-06-23
 
 First-run identity picker + per-module on/off — tailor Acta to how you work.

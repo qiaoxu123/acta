@@ -29,6 +29,7 @@ const RECT_TONE: Record<string, "ok" | "warn" | "urgent" | "neutral"> = {
   accept: "ok",
   minor: "ok",
   major: "warn",
+  reject_resubmit: "urgent",
   reject: "urgent",
 };
 

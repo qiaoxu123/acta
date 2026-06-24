@@ -1,0 +1,31 @@
+/* Map Milkdown Crepe's theme tokens onto Acta's CSS variables so the editor
+   follows the app's light/dark palette. Higher specificity than Crepe's own
+   `.milkdown` rules so these win regardless of import order. */
+.acta-md {
+  height: 100%;
+  min-height: 0;
+}
+.acta-md .milkdown {
+  height: 100%;
+  overflow-y: auto;
+  --crepe-color-background: var(--surface);
+  --crepe-color-on-background: var(--content);
+  --crepe-color-surface: var(--surface);
+  --crepe-color-surface-low: var(--surface-sunken);
+  --crepe-color-on-surface: var(--content);
+  --crepe-color-on-surface-variant: var(--content-muted);
+  --crepe-color-outline: var(--border);
+  --crepe-color-primary: var(--accent);
+  --crepe-color-secondary: var(--surface-raised);
+  --crepe-color-on-secondary: var(--content);
+  --crepe-color-inverse: var(--content);
+  --crepe-color-on-inverse: var(--surface);
+  --crepe-color-hover: var(--surface-sunken);
+  --crepe-color-selected: var(--accent-soft);
+  --crepe-color-inline-code: var(--accent);
+  --crepe-color-inline-area: var(--surface-sunken);
+}
+/* Comfortable reading measure; let our own font-size drive it. */
+.acta-md .milkdown .ProseMirror {
+  padding: 0.5rem 0.25rem 4rem;
+}

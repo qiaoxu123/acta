@@ -401,9 +401,9 @@ export function IdeaDetail({
   );
 
   const notes = idea.notes && (
-    <p className="mt-3 max-h-28 overflow-y-auto whitespace-pre-wrap rounded-md bg-surface-sunken p-3 text-xs text-content-muted">
-      {idea.notes}
-    </p>
+    <div className="mt-3 max-h-56 overflow-y-auto rounded-md bg-surface-sunken px-3 py-1">
+      <Markdown source={idea.notes} />
+    </div>
   );
 
   const logsTitle = (

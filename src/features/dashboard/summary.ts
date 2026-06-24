@@ -254,7 +254,7 @@ export async function loadDashboard(t: TFn): Promise<DashData> {
         .filter(Boolean)
         .map((x) => `#${x}`)
         .join(" "),
-      href: `/notes/item/${n.id}`,
+      href: `/notes/${n.id}`,
       date: null,
     }));
     cards.notes = { count: notes.length, rows, pills: [] };

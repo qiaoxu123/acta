@@ -65,6 +65,12 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0010_reports.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 11,
+            description: "notes: folder path for Obsidian-style organization",
+            sql: include_str!("../migrations/0011_notes_folder.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

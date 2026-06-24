@@ -15,7 +15,6 @@ import { IdeasPage } from "@/features/ideas/IdeasPage";
 import { IdeaItemPage } from "@/features/ideas/IdeaItemPage";
 import { SparksPage } from "@/features/sparks/SparksPage";
 import { NotesPage } from "@/features/notes/NotesPage";
-import { NoteItemPage } from "@/features/notes/NoteItemPage";
 import { ReportsPage } from "@/features/reports/ReportsPage";
 import { ReportItemPage } from "@/features/reports/ReportItemPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
@@ -52,7 +51,6 @@ export const routes: RouteObject[] = [
       { path: "projects/horizontal/:id", element: <ProjectsPage category="horizontal" /> },
       { path: "sparks", element: <SparksPage /> },
       { path: "notes", element: <NotesPage /> },
-      { path: "notes/item/:id", element: <NoteItemPage /> },
       { path: "notes/:id", element: <NotesPage /> },
       { path: "reports", element: <ReportsPage /> },
       { path: "reports/item/:id", element: <ReportItemPage /> },

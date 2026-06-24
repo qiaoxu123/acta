@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { sectionInfo } from "@/lib/tabs";
 import { useBreadcrumb, type Crumb } from "@/store/breadcrumb";
+import { usePageHeader } from "@/store/pageHeader";
 import { useI18n } from "@/lib/i18n";
 
 const SECTION_ICON: Record<string, LucideIcon> = {
@@ -47,6 +48,7 @@ export function TopBar() {
   const { pathname } = useLocation();
   const bcPath = useBreadcrumb((s) => s.path);
   const bcTrail = useBreadcrumb((s) => s.trail);
+  const setSlot = usePageHeader((s) => s.setEl);
 
   const info = sectionInfo(pathname);
   const section = info?.key ?? "dashboard";
@@ -65,16 +67,22 @@ export function TopBar() {
     "rounded p-1 text-content-subtle transition-colors hover:bg-surface hover:text-content";
 
   return (
-    // pt-8 sinks the bar below the overlaid traffic lights so the path lines up
-    // with the sidebar "Acta" header.
-    // `deep`: the whole bar (incl. the breadcrumb gutter) is a drag region and
-    // Tauri's native handler does double-click-to-zoom. Interactive children
-    // (the back/forward <button>s, and crumbs marked role="link") are excluded
-    // by Tauri automatically, so they stay clickable and don't start a drag.
+    // One full-width title bar across the very top (the macOS traffic-light
+    // row), ToDesk-style: logo + nav + page actions all share this row, so the
+    // strip beside the window controls isn't wasted. `pl` clears the lights.
+    // `deep` makes the whole bar a drag region (native double-click-to-zoom);
+    // interactive children (<button>s, crumbs with role="link") are excluded.
     <div
       data-tauri-drag-region="deep"
-      className="flex items-center gap-1 border-b border-border bg-surface-sunken px-2 pb-2 pt-8"
+      className="flex h-11 shrink-0 items-center gap-1 border-b border-border bg-surface-sunken pl-[80px] pr-2"
     >
+      <div className="flex shrink-0 items-center gap-2 pr-1">
+        <span className="grid h-6 w-6 place-items-center rounded bg-accent text-sm font-bold text-accent-fg">
+          A
+        </span>
+        <span className="text-sm font-semibold tracking-tight text-content">Acta</span>
+      </div>
+      <div className="mx-1 h-4 w-px shrink-0 bg-border" />
       <div className="flex shrink-0 items-center gap-0.5">
         <button onClick={() => navigate(-1)} title={t("nav.back")} className={navBtn}>
           <ChevronLeft size={15} />
@@ -113,6 +121,12 @@ export function TopBar() {
           );
         })}
       </nav>
+
+      {/* Page <Toolbar> portals its subtitle/actions here, filling the strip. */}
+      <div
+        ref={(el) => setSlot(el)}
+        className="flex shrink-0 items-center gap-2 pr-1"
+      />
     </div>
   );
 }

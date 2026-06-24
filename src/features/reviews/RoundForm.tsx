@@ -11,7 +11,7 @@ import { localInputToUtcIso, utcIsoToLocalInput } from "@/lib/dates";
 import { useI18n } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
 
-const RECS: Recommendation[] = ["accept", "minor", "major", "reject"];
+const RECS: Recommendation[] = ["accept", "minor", "major", "reject_resubmit", "reject"];
 
 interface FormState {
   round: string;
