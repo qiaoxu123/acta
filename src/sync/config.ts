@@ -28,6 +28,12 @@ export interface SyncTransport {
   get(): Promise<string | null>;
   /** PUT (create/overwrite) the remote snapshot. */
   put(body: string): Promise<void>;
+  /** List blob keys present on the server (no bodies). Optional — PG only. */
+  listFiles?(): Promise<{ key: string; size: number }[]>;
+  /** Download a blob by key; null if 404. Optional — PG only. */
+  getFile?(key: string): Promise<Uint8Array | null>;
+  /** Upload (create/overwrite) a blob by key. Optional — PG only. */
+  putFile?(key: string, bytes: Uint8Array): Promise<void>;
 }
 
 export function loadDav(): WebDavConfig {

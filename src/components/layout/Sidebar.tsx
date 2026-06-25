@@ -27,6 +27,7 @@ import { applyTheme, getStoredTheme, type Theme } from "@/lib/theme";
 import { useI18n } from "@/lib/i18n";
 import { useModules, type ModuleKey } from "@/store/modules";
 import { useAuth } from "@/store/auth";
+import { useSidebar } from "@/store/sidebar";
 
 const TOP = { to: "/", key: "nav.dashboard", icon: LayoutDashboard, end: true };
 
@@ -78,21 +79,14 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
       : "text-content-muted hover:bg-surface-raised hover:text-content",
   );
 
-const COLLAPSED_KEY = "acta.sidebar.collapsed";
-
 export function Sidebar() {
   const { t, locale, setLocale } = useI18n();
   const [theme, setTheme] = useState<Theme>(getStoredTheme());
   const enabled = useModules((s) => s.enabled);
   const session = useAuth((s) => s.session);
   const logout = useAuth((s) => s.logout);
-  const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem(COLLAPSED_KEY) === "1");
-
-  const toggleCollapsed = () => {
-    const v = !collapsed;
-    setCollapsed(v);
-    localStorage.setItem(COLLAPSED_KEY, v ? "1" : "0");
-  };
+  const collapsed = useSidebar((s) => s.collapsed);
+  const toggleCollapsed = useSidebar((s) => s.toggle);
 
   // Hide disabled modules; drop a group entirely once it has nothing to show.
   const groups = GROUPS.map((g) => ({
@@ -129,7 +123,8 @@ export function Sidebar() {
 
       <nav className="flex-1 overflow-y-auto px-2 pb-1 pt-2">
         {/* Dashboard always visible */}
-        <NavLink to={TOP.to} end={TOP.end} className={linkClass} title={t(TOP.key)}>
+        <NavLink to={TOP.to} end={TOP.end} title={t(TOP.key)}
+          className={(s) => clsx(linkClass(s), collapsed && "justify-center")}>
           <TOP.icon size={16} />
           {!collapsed && t(TOP.key)}
         </NavLink>
@@ -143,7 +138,8 @@ export function Sidebar() {
             )}
             <div className="space-y-0.5">
               {g.items.map(({ to, key, icon: Icon }) => (
-                <NavLink key={to} to={to} className={linkClass} title={t(key)}>
+                <NavLink key={to} to={to} title={t(key)}
+                  className={(s) => clsx(linkClass(s), collapsed && "justify-center")}>
                   <Icon size={16} />
                   {!collapsed && t(key)}
                 </NavLink>
@@ -155,7 +151,7 @@ export function Sidebar() {
         {/* Collapse-toggle in collapsed mode: expand button at the bottom */}
         {collapsed && (
           <div className="mt-3 border-t border-border pt-3">
-            <button onClick={toggleCollapsed} className={btnClass} title={t("nav.back")}>
+            <button onClick={toggleCollapsed} className={clsx(btnClass, "justify-center")} title={t("nav.back")}>
               <PanelLeftOpen size={16} />
             </button>
           </div>

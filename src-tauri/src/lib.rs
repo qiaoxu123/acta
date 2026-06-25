@@ -101,6 +101,18 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0016_groups.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 17,
+            description: "students: category/grade/school role taxonomy",
+            sql: include_str!("../migrations/0017_student_category.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 18,
+            description: "student_files: per-student attachments (resumes, transcripts)",
+            sql: include_str!("../migrations/0018_student_files.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

@@ -49,13 +49,14 @@ export const useSync = create<SyncState>((set, get) => ({
       const r = await runSync(active.tx);
       const now = new Date().toISOString();
       localStorage.setItem(LAST, now);
+      const fileNote = r.filesUp || r.filesDown ? ` 📎↓${r.filesDown} ↑${r.filesUp}` : "";
       set({
         syncing: false,
         lastSync: now,
-        lastResult: `[${active.label}] ↓${r.pulled} ↑${r.pushed}`,
+        lastResult: `[${active.label}] ↓${r.pulled} ↑${r.pushed}${fileNote}`,
         error: null,
       });
-      if (r.pulled > 0) useRefresh.getState().bump();
+      if (r.pulled > 0 || r.filesDown > 0) useRefresh.getState().bump();
     } catch (e) {
       set({ syncing: false, error: String(e instanceof Error ? e.message : e) });
     }

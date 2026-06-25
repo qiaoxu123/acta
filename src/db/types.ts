@@ -312,6 +312,7 @@ export const ALL_TABLES = [
   "reports",
   "funding",
   "students",
+  "student_files",
   "tasks",
   "users",
   "sessions",

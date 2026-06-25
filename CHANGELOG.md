@@ -1,5 +1,62 @@
 # Changelog
 
+## [0.15.0] - 2026-06-25
+
+Students module reworked around a real role taxonomy; migration bookkeeping
+repaired.
+
+### Features
+
+- **Student role taxonomy** (migration 0017 adds `category` / `grade` /
+  `school`): the list now groups by **role** — 准研一(incoming) · 在读硕士 ·
+  在读博士 · 科研助理(assistant) · 保研推免(rec_applicant) · 博士申请(phd_applicant) ·
+  已毕业. `status` repurposed as the decision/progress state — 待回复(pending) /
+  已同意(agreed) / 在组(active) / 已放弃(declined) / 已毕业 / 已离组, each with a
+  distinct badge tone.
+- **Clickable aggregate chips**: 准研一 / 在读硕士 / 在读博士 / 科研助理 / 保研已同意 /
+  保研申请中 / 博士申请 counts double as one-click filters; second click clears.
+- **`grade` and `school` columns** surfaced in the table (year + home
+  institution, previously buried in notes); form gains role/grade/school inputs
+  and pre-fills sensible level+status when the role changes.
+- **Roster updated** to the current 14 advisees: 3 准研一 (丘宇航/刘爽/丁洪峰),
+  3 科研助理 (陈楠 大三·拟保研外校, 秦叶天/宋枰儒 大二), 2 保研已同意 (刘菁蕊/林泰来),
+  5 保研申请中 (李俊杰/朱烁杰/匡书函/洪澍雨/李思凝), 1 博士申请已放弃 (房禹龙, 无名额).
+- **Inline editing**: click the status (or role) badge straight from the list /
+  detail to change it via a popover — no form needed. The detail panel's fields
+  (grade, school, direction, email, phone, co-advisor, enrollment year, exam /
+  interview dates) are all click-to-edit. New reusable `InlinePicker`
+  (portal-rendered, never clipped by a cell) + `InlineText` primitives.
+- **Per-student attachments** (migration 0018 `student_files`): upload resumes,
+  transcripts, email attachments — files are copied into the app data dir
+  (`attachments/students/<id>/`), tagged by kind (简历 / 成绩单 / 附件 / 其他, kind
+  is itself inline-editable), and can be opened with the default app or revealed
+  in Finder. **Drag-and-drop** upload is supported (via Tauri's native webview
+  drag-drop event, since the OS intercepts drops before HTML5 DnD). Uses dialog
+  + fs + the new `@tauri-apps/plugin-opener`; capabilities widened with a
+  `$HOME`/`$APPDATA` fs scope and `opener:allow-open-path`.
+- **Attachment cloud sync (PG)**: `student_files` metadata now rides the JSON
+  snapshot, and the file **bytes** travel through new blob endpoints on the PG
+  sync API (`GET /files` manifest · `GET/PUT /file?key=` storing `bytea` keyed by
+  rel_path). Each sync cycle reconciles: local-only files upload, server-only
+  files download — so attachments converge across devices without bloating the
+  snapshot. Best-effort and isolated: if the server lacks blob support (not yet
+  redeployed) the metadata sync still succeeds. WebDAV transport stays
+  files-unaware. Requires redeploying `server/pg-api/`.
+- **Status badge tone fix**: 在组(active) was rendering in the alarming brand-red
+  (`accent`); now a calm neutral. Tones: 待回复 amber · 已同意 green · 在组/已放弃/
+  已毕业 neutral · 已离组 red.
+
+### Notes & Caveats
+
+- **Migration chain repair**: a prior session added `owner_id` (v15) and the
+  groups tables (v16) directly via script without recording them in
+  `_sqlx_migrations`, so on launch sqlx re-ran v15 (`ADD COLUMN owner_id`), hit
+  *duplicate column*, and halted — blocking v17. Fixed by recording v15/v16/v17
+  in `_sqlx_migrations` with their correct sqlx checksums (SHA-384 of each
+  migration file) and applying v17's columns manually. The app now validates and
+  starts cleanly. Going forward, schema changes must go through migrations, never
+  ad-hoc `ALTER`.
+
 ## [0.14.0] - 2026-06-24
 
 Notes redesigned as an Obsidian/wolai-style workspace with Typora-like WYSIWYG

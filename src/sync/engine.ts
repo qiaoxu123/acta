@@ -1,10 +1,52 @@
 import { exportAll, type Backup } from "@/lib/backup";
 import { markAllClean, upsertRaw } from "@/db/mutate";
 import { ALL_TABLES } from "@/db/types";
+import { readStoredFile, storedFileExists, writeStoredFile } from "@/lib/attachments";
 import { type SyncTransport } from "./config";
 
 type Row = Record<string, any>;
 const ts = (r: Row) => String(r.updated_at || "");
+
+/**
+ * Reconcile attachment blobs against the transport's file store. The JSON
+ * snapshot only carries `student_files` metadata (keyed by rel_path); the bytes
+ * travel here. For every live file row: upload it if it's local-only, download
+ * it if it's server-only. Converges files across devices without bloating the
+ * snapshot. No-op for transports without blob support (e.g. WebDAV).
+ */
+async function reconcileFiles(tx: SyncTransport, fileRows: Row[]): Promise<{ up: number; down: number }> {
+  if (!tx.listFiles || !tx.getFile || !tx.putFile) return { up: 0, down: 0 };
+  const live = fileRows.filter((f) => !f.deleted_at && f.rel_path);
+  if (!live.length) return { up: 0, down: 0 };
+
+  // If the server doesn't support blobs yet (e.g. not redeployed), skip quietly
+  // rather than failing the whole sync — the metadata snapshot already synced.
+  let remoteKeys: Set<string>;
+  try {
+    remoteKeys = new Set((await tx.listFiles()).map((r) => r.key));
+  } catch (e) {
+    console.warn("file sync unavailable (server may need redeploy):", e);
+    return { up: 0, down: 0 };
+  }
+
+  let up = 0, down = 0;
+  for (const f of live) {
+    const key = String(f.rel_path);
+    try {
+      const onLocal = await storedFileExists(key);
+      if (onLocal && !remoteKeys.has(key)) {
+        await tx.putFile!(key, await readStoredFile(key));
+        up++;
+      } else if (!onLocal && remoteKeys.has(key)) {
+        const bytes = await tx.getFile!(key);
+        if (bytes) { await writeStoredFile(key, bytes); down++; }
+      }
+    } catch (e) {
+      console.warn(`file sync failed for ${key}:`, e); // isolate; keep going
+    }
+  }
+  return { up, down };
+}
 
 /**
  * Merge two full snapshots row-by-row with last-write-wins on `updated_at`.
@@ -29,6 +71,8 @@ export function mergeSnapshots(local: Backup, remote: Backup | null): Backup {
 export interface SyncResult {
   pulled: number; // rows updated locally from the remote
   pushed: number; // local dirty rows contributed to the remote
+  filesUp: number; // attachment blobs uploaded
+  filesDown: number; // attachment blobs downloaded
 }
 
 /**
@@ -68,6 +112,10 @@ export async function runSync(tx: SyncTransport): Promise<SyncResult> {
   }
 
   await tx.put(JSON.stringify(merged));
+
+  // Reconcile attachment blobs (uses the merged metadata as the source of truth).
+  const files = await reconcileFiles(tx, merged.tables["student_files"] || []);
+
   await markAllClean();
-  return { pulled, pushed };
+  return { pulled, pushed, filesUp: files.up, filesDown: files.down };
 }
