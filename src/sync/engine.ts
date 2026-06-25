@@ -83,7 +83,7 @@ export interface SyncResult {
  * One sync cycle against a transport (WebDAV or PG REST API). Pulls the remote
  * snapshot, merges with local, pushes back, marks clean.
  */
-export async function runSync(tx: SyncTransport): Promise<SyncResult> {
+export async function runSync(tx: SyncTransport, fileTx?: SyncTransport): Promise<SyncResult> {
   const local = await exportAll();
   const remoteText = await tx.get();
   const remote = remoteText ? (JSON.parse(remoteText) as Backup) : null;
@@ -113,8 +113,11 @@ export async function runSync(tx: SyncTransport): Promise<SyncResult> {
 
   await tx.put(JSON.stringify(merged));
 
-  // Reconcile attachment blobs (uses the merged metadata as the source of truth).
-  const files = await reconcileFiles(tx, merged.tables["student_files"] || []);
+  // Reconcile attachment blobs through the (possibly different) file backend,
+  // using the merged metadata as the source of truth.
+  const files = fileTx
+    ? await reconcileFiles(fileTx, merged.tables["student_files"] || [])
+    : { up: 0, down: 0 };
 
   await markAllClean();
   return { pulled, pushed, filesUp: files.up, filesDown: files.down };

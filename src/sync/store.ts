@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { loadDav, loadPg, type SyncTransport } from "./config";
-import { davGet, davPut } from "./webdav";
+import { loadDav, loadFileBackend, loadPg, type SyncTransport, type WebDavConfig } from "./config";
+import { davGet, davGetFile, davListFiles, davPut, davPutFile } from "./webdav";
 import { createPgTransport } from "./postgres";
 import { runSync } from "./engine";
 import { DAV_FILE } from "./config";
@@ -20,6 +20,31 @@ function activeTransport(): { label: string; tx: SyncTransport } | null {
     };
   }
   return null;
+}
+
+/** A blob-only transport backed by WebDAV (snapshot ops are no-ops). */
+function webdavFileTransport(dav: WebDavConfig): SyncTransport {
+  return {
+    get: async () => null,
+    put: async () => {},
+    listFiles: () => davListFiles(dav),
+    getFile: (k) => davGetFile(dav, k),
+    putFile: (k, b) => davPutFile(dav, k, b),
+  };
+}
+
+/** Resolve where attachment bytes go, independent of the snapshot transport. */
+function resolveFileTransport(active: SyncTransport): SyncTransport | undefined {
+  const mode = loadFileBackend();
+  if (mode === "webdav") {
+    const dav = loadDav();
+    return dav.url && dav.username && dav.password ? webdavFileTransport(dav) : undefined;
+  }
+  if (mode === "pg") {
+    const pg = loadPg();
+    return pg.apiUrl && pg.token ? createPgTransport(pg) : undefined;
+  }
+  return active; // "auto" — follow the snapshot transport
 }
 
 interface SyncState {
@@ -46,7 +71,7 @@ export const useSync = create<SyncState>((set, get) => ({
     if (get().syncing) return;
     set({ syncing: true, error: null });
     try {
-      const r = await runSync(active.tx);
+      const r = await runSync(active.tx, resolveFileTransport(active.tx));
       const now = new Date().toISOString();
       localStorage.setItem(LAST, now);
       const fileNote = r.filesUp || r.filesDown ? ` 📎↓${r.filesDown} ↑${r.filesUp}` : "";

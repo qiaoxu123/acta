@@ -18,6 +18,21 @@ export interface PgConfig {
 
 const DAV_KEY = "acta.webdav";
 const PG_KEY = "acta.pgsync";
+const FILE_BACKEND_KEY = "acta.filebackend";
+
+/** Where attachment file *bytes* are stored. Metadata always rides the snapshot.
+ *  - "auto"  : follow the active snapshot transport
+ *  - "webdav": store files on WebDAV (works even while the snapshot uses PG)
+ *  - "pg"    : store files on the PG blob API */
+export type FileBackend = "auto" | "webdav" | "pg";
+
+export function loadFileBackend(): FileBackend {
+  const v = localStorage.getItem(FILE_BACKEND_KEY);
+  return v === "webdav" || v === "pg" ? v : "auto";
+}
+export function saveFileBackend(v: FileBackend): void {
+  localStorage.setItem(FILE_BACKEND_KEY, v);
+}
 
 /** The single snapshot file kept on the WebDAV server / to PUT against PG. */
 export const DAV_FILE = "acta-data.json";

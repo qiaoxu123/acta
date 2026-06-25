@@ -5,13 +5,13 @@ import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 import { fetch } from "@tauri-apps/plugin-http";
 import { Blocks, Check, Cloud, Database, Download, Plus, RefreshCw, Upload, Users, X } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
-import { Button, Field, TextInput } from "@/components/ui/controls";
+import { Button, Field, Select, TextInput } from "@/components/ui/controls";
 import { MODULES, enabledFromRole, useModules, type RoleKey } from "@/store/modules";
 import { exportAll, importAll, type Backup } from "@/lib/backup";
 import { confirmDialog } from "@/lib/confirm";
 import { useI18n } from "@/lib/i18n";
 import { useRefresh } from "@/store/refresh";
-import { loadDav, loadPg, saveDav, savePg, type PgConfig, type WebDavConfig } from "@/sync/config";
+import { loadDav, loadFileBackend, loadPg, saveDav, saveFileBackend, savePg, type FileBackend, type PgConfig, type WebDavConfig } from "@/sync/config";
 import { davCheck } from "@/sync/webdav";
 import { useSync, startAutoSync } from "@/sync/store";
 import { addMember, createGroup, listGroups, listMembers, removeMember } from "@/db/repositories/groups";
@@ -316,6 +316,7 @@ function ModulesSection() {
 function SyncSection() {
   const { t } = useI18n();
   const [cfg, setCfg] = useState<WebDavConfig>(() => loadDav());
+  const [fileBackend, setFileBackend] = useState<FileBackend>(() => loadFileBackend());
   const [note, setNote] = useState<string | null>(null);
   const sync = useSync((s) => s.sync);
   const syncing = useSync((s) => s.syncing);
@@ -377,6 +378,17 @@ function SyncSection() {
             />
           </Field>
         </div>
+        <Field label={t("set.fileBackend")}>
+          <Select
+            value={fileBackend}
+            onChange={(e) => { const v = e.target.value as FileBackend; setFileBackend(v); saveFileBackend(v); }}
+          >
+            <option value="auto">{t("set.fileBackend.auto")}</option>
+            <option value="webdav">{t("set.fileBackend.webdav")}</option>
+            <option value="pg">{t("set.fileBackend.pg")}</option>
+          </Select>
+        </Field>
+        <p className="text-2xs text-content-subtle">{t("set.fileBackendDesc")}</p>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">

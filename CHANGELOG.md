@@ -40,8 +40,16 @@ repaired.
   rel_path). Each sync cycle reconciles: local-only files upload, server-only
   files download — so attachments converge across devices without bloating the
   snapshot. Best-effort and isolated: if the server lacks blob support (not yet
-  redeployed) the metadata sync still succeeds. WebDAV transport stays
-  files-unaware. Requires redeploying `server/pg-api/`.
+  redeployed) the metadata sync still succeeds. Requires redeploying
+  `server/pg-api/`.
+- **Attachment storage backend selector** (Settings → 同步): choose where file
+  bytes live — *Follow sync backend* / *WebDAV* / *PostgreSQL* — independent of
+  the snapshot transport. **WebDAV** lets files sync today without the PG server
+  redeploy (files stored in a flat `files/` collection on the WebDAV server,
+  keyed by base64url of rel_path; PROPFIND manifest + binary PUT/GET). Validated
+  end-to-end against 坚果云. Set it to WebDAV and fill the WebDAV credentials (the
+  WebDAV snapshot toggle can stay off — only the creds are needed). Sync status
+  shows `📎↓n ↑n` when files move.
 - **Status badge tone fix**: 在组(active) was rendering in the alarming brand-red
   (`accent`); now a calm neutral. Tones: 待回复 amber · 已同意 green · 在组/已放弃/
   已毕业 neutral · 已离组 red.
