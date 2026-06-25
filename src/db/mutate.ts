@@ -1,7 +1,21 @@
-import { execute } from "./client";
+import { execute, select } from "./client";
 import { newId } from "../lib/ids";
 import { nowIso } from "../lib/dates";
 import { ALL_TABLES } from "./types";
+
+let _cachedOwner: string | null | undefined;
+async function getOwnerId(): Promise<string | null> {
+  if (_cachedOwner !== undefined) return _cachedOwner;
+  try {
+    const rows = await select<{ user_id: string }>("SELECT user_id FROM sessions WHERE id='current'");
+    _cachedOwner = rows[0]?.user_id ?? null;
+  } catch { _cachedOwner = null; }
+  return _cachedOwner;
+}
+
+/** Tables that participate in per-user isolation. */
+const OWNED_TABLES = new Set(ALL_TABLES.filter(t => !["users","sessions","groups","group_members","shared_items"].includes(t)));
+
 
 /**
  * The single write gateway for the whole app. Every create/update/delete goes
@@ -16,7 +30,7 @@ import { ALL_TABLES } from "./types";
 
 type Row = Record<string, unknown>;
 
-/** Insert a row, generating id + timestamps. Returns the new id. */
+/** Insert a row, generating id + timestamps + owner_id. Returns the new id. */
 export async function insert(table: string, data: Row): Promise<string> {
   const id = (data.id as string) || newId();
   const ts = nowIso();
@@ -28,6 +42,11 @@ export async function insert(table: string, data: Row): Promise<string> {
     deleted_at: null,
     sync_status: "dirty",
   };
+  // Stamp owner_id on isolated tables if not already provided
+  if (OWNED_TABLES.has(table as any) && !row.owner_id) {
+    const oid = await getOwnerId();
+    if (oid) row.owner_id = oid;
+  }
 
   const cols = Object.keys(row);
   const placeholders = cols.map((_, i) => `$${i + 1}`).join(", ");

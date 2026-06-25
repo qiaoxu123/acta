@@ -16,6 +16,7 @@ import {
   Sparkles,
   Languages,
   Moon,
+  LogOut,
   ScrollText,
   Settings,
   Sun,
@@ -25,6 +26,7 @@ import { useState } from "react";
 import { applyTheme, getStoredTheme, type Theme } from "@/lib/theme";
 import { useI18n } from "@/lib/i18n";
 import { useModules, type ModuleKey } from "@/store/modules";
+import { useAuth } from "@/store/auth";
 
 const TOP = { to: "/", key: "nav.dashboard", icon: LayoutDashboard, end: true };
 
@@ -82,6 +84,8 @@ export function Sidebar() {
   const { t, locale, setLocale } = useI18n();
   const [theme, setTheme] = useState<Theme>(getStoredTheme());
   const enabled = useModules((s) => s.enabled);
+  const session = useAuth((s) => s.session);
+  const logout = useAuth((s) => s.logout);
   const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem(COLLAPSED_KEY) === "1");
 
   const toggleCollapsed = () => {
@@ -171,6 +175,26 @@ export function Sidebar() {
           <button onClick={() => setLocale(locale === "zh" ? "en" : "zh")} className={btnClass}>
             <Languages size={16} />
             {t("lang.label")}
+          </button>
+          {session && typeof session === 'object' && (
+            <>
+              <div className="mt-1.5 border-t border-border pt-1.5">
+                <p className="truncate px-2.5 py-0.5 text-2xs text-content-subtle">
+                  {t("auth.loggedInAs", { name: session.username })}
+                </p>
+              </div>
+              <button onClick={logout} className={btnClass}>
+                <LogOut size={16} />
+                {t("auth.logout")}
+              </button>
+            </>
+          )}
+        </div>
+      )}
+      {collapsed && session && typeof session === 'object' && (
+        <div className="border-t border-border px-2 py-1.5">
+          <button onClick={logout} title={t("auth.logout")} className="flex w-full justify-center rounded p-1.5 text-content-subtle hover:text-content">
+            <LogOut size={16} />
           </button>
         </div>
       )}

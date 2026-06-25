@@ -313,5 +313,7 @@ export const ALL_TABLES = [
   "funding",
   "students",
   "tasks",
+  "users",
+  "sessions",
 ] as const;
 export type TableName = (typeof ALL_TABLES)[number];

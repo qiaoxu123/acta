@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { ResizablePane } from "./ResizablePane";
 import { TopBar } from "./TopBar";
+import { AuthGate } from "@/features/auth/AuthGate";
 import { Onboarding } from "@/features/onboarding/Onboarding";
 
 /** Top-level frame: one full-width title bar across the top, then a resizable
@@ -9,6 +10,7 @@ import { Onboarding } from "@/features/onboarding/Onboarding";
 export function AppShell() {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
+      <AuthGate />
       <Onboarding />
       <TopBar />
       <div className="flex min-h-0 flex-1">

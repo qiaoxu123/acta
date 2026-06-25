@@ -83,6 +83,24 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0013_students.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 14,
+            description: "users: local account system with bcrypt passwords",
+            sql: include_str!("../migrations/0014_users.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 15,
+            description: "data isolation: owner_id on every main table",
+            sql: include_str!("../migrations/0015_owner_id.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 16,
+            description: "groups and shared_items for cross-user collaboration",
+            sql: include_str!("../migrations/0016_groups.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 

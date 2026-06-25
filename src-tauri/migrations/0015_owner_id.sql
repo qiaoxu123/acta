@@ -1,0 +1,16 @@
+ALTER TABLE venues                   ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE venue_editions          ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE reviewed_manuscripts    ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE review_rounds           ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE papers                  ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE paper_submissions       ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE patents                 ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE projects                ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE ideas                   ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE idea_logs               ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE sparks                  ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE notes                   ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE funding                 ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE students                ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE tasks                   ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';
+ALTER TABLE reports                 ADD COLUMN owner_id TEXT NOT NULL DEFAULT 'xqiao';

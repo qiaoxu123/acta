@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 import { fetch } from "@tauri-apps/plugin-http";
-import { Blocks, Check, Cloud, Database, Download, RefreshCw, Upload } from "lucide-react";
+import { Blocks, Check, Cloud, Database, Download, Plus, RefreshCw, Upload, Users, X } from "lucide-react";
 import { Toolbar } from "@/components/layout/Toolbar";
 import { Button, Field, TextInput } from "@/components/ui/controls";
 import { MODULES, enabledFromRole, useModules, type RoleKey } from "@/store/modules";
@@ -14,6 +14,9 @@ import { useRefresh } from "@/store/refresh";
 import { loadDav, loadPg, saveDav, savePg, type PgConfig, type WebDavConfig } from "@/sync/config";
 import { davCheck } from "@/sync/webdav";
 import { useSync, startAutoSync } from "@/sync/store";
+import { addMember, createGroup, listGroups, listMembers, removeMember } from "@/db/repositories/groups";
+import { findUser } from "@/db/repositories/users";
+import { useAuth } from "@/store/auth";
 
 export function SettingsPage() {
   const bump = useRefresh((s) => s.bump);
@@ -58,6 +61,7 @@ export function SettingsPage() {
       <div className="flex-1 overflow-y-auto px-5 py-4">
         <div className="mx-auto max-w-2xl space-y-6">
           <ModulesSection />
+          <GroupsSection />
           <PgSyncSection />
           <SyncSection />
 
@@ -171,6 +175,87 @@ function PgSyncSection() {
         <p className="mt-2 break-words rounded bg-surface-sunken p-2 text-2xs text-content-muted">
           {note}
         </p>
+      )}
+    </section>
+  );
+}
+
+function GroupsSection() {
+  const { t } = useI18n();
+  const session = useAuth((s) => s.session);
+  const userId = session && typeof session === 'object' ? session.user_id : null;
+  const [groups, setGroups] = useState<any[]>([]);
+  const [name, setName] = useState("");
+  const [members, setMembers] = useState<Record<string, any[]>>({});
+  const [addUser, setAddUser] = useState<Record<string, string>>({});
+  const load = async () => {
+    const gs = await listGroups();
+    setGroups(gs);
+  };
+  useEffect(() => { load(); }, []);
+  const create = async () => {
+    if (!name.trim() || !userId) return;
+    await createGroup(name, userId);
+    setName("");
+    load();
+  };
+  const addM = async (gid: string) => {
+    const uname = (addUser[gid] || "").trim();
+    if (!uname) return;
+    const u = await findUser(uname);
+    if (!u) return;
+    await addMember(gid, u.id);
+    setAddUser((p) => ({ ...p, [gid]: "" }));
+    const ms = await listMembers(gid);
+    setMembers((p) => ({ ...p, [gid]: ms }));
+  };
+  const rmM = async (gid: string, uid: string) => {
+    await removeMember(gid, uid);
+    const ms = await listMembers(gid);
+    setMembers((p) => ({ ...p, [gid]: ms }));
+  };
+  const toggleMembers = async (gid: string) => {
+    if (members[gid]) { setMembers((p) => { const n = { ...p }; delete n[gid]; return n; }); }
+    else { const ms = await listMembers(gid); setMembers((p) => ({ ...p, [gid]: ms })); }
+  };
+
+  return (
+    <section className="rounded-md border border-border bg-surface-raised p-4">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-content">
+        <Users size={15} /> {t("groups.title")}
+      </h2>
+      <p className="mt-1 text-xs text-content-muted">{t("groups.desc")}</p>
+      <div className="mt-3 flex gap-2">
+        <TextInput className="flex-1" placeholder={t("groups.nameHint")} value={name} onChange={(e) => setName(e.target.value)} />
+        <Button variant="primary" onClick={create}><Plus size={14} /> {t("groups.create")}</Button>
+      </div>
+      {groups.length > 0 && (
+        <div className="mt-3 space-y-2">
+          {groups.map((g) => (
+            <div key={g.id} className="rounded-md border border-border bg-surface-sunken/40 p-2">
+              <div className="flex items-center justify-between">
+                <button onClick={() => toggleMembers(g.id)} className="text-xs font-medium text-content hover:text-accent">{g.name}</button>
+                <span className="text-2xs text-content-subtle">{members[g.id]?.length ?? "—"} members</span>
+              </div>
+              {members[g.id] && (
+                <div className="mt-2 space-y-1">
+                  {members[g.id].map((m: any) => (
+                    <div key={m.user_id} className="flex items-center justify-between rounded bg-surface px-2 py-0.5 text-2xs text-content-muted">
+                      <span>{m.user_id === g.created_by ? "👑 " : ""}{m.user_id}</span>
+                      {m.role === 'owner' ? <span className="text-content-subtle">{t("groups.owner")}</span> : (
+                        <button onClick={() => rmM(g.id, m.user_id)} className="text-urgent hover:underline"><X size={11} /></button>
+                      )}
+                    </div>
+                  ))}
+                  <div className="flex gap-1">
+                    <TextInput className="flex-1 text-2xs" placeholder={t("groups.addUserHint")} value={addUser[g.id] || ""} onChange={(e) => setAddUser((p) => ({ ...p, [g.id]: e.target.value }))} />
+                    <Button onClick={() => addM(g.id)}>{t("groups.addUser")}</Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </section>
   );
