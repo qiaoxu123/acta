@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.15.1] - 2026-06-25
+
+### Features
+
+- **Windows: native title bar removed**. Windows builds now run frameless
+  (`decorations: false` via `tauri.windows.conf.json`) so the OS title bar no
+  longer doubles up with the app's custom top bar. The app draws its own
+  Windows-style controls (minimize / maximize-restore / close) on the right of
+  the top bar, the top bar is the drag region, and thin edge/corner
+  `ResizeHandles` restore window resizing via `startResizeDragging`. macOS is
+  untouched (keeps native traffic-light overlay); branching is by UA
+  (`src/lib/platform.ts`). Capabilities gain the window min/max/close/resize
+  permissions.
+
 ## [0.15.0] - 2026-06-25
 
 Students module reworked around a real role taxonomy; migration bookkeeping

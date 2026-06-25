@@ -5,6 +5,8 @@ import { TopBar } from "./TopBar";
 import { AuthGate } from "@/features/auth/AuthGate";
 import { Onboarding } from "@/features/onboarding/Onboarding";
 import { useSidebar } from "@/store/sidebar";
+import { ResizeHandles } from "./ResizeHandles";
+import { isWindows } from "@/lib/platform";
 
 const COLLAPSED_WIDTH = 56;
 
@@ -15,6 +17,7 @@ export function AppShell() {
   const collapsed = useSidebar((s) => s.collapsed);
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-surface">
+      {isWindows && <ResizeHandles />}
       <AuthGate />
       <Onboarding />
       <TopBar />

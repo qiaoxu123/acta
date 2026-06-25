@@ -21,6 +21,8 @@ import { sectionInfo } from "@/lib/tabs";
 import { useBreadcrumb, type Crumb } from "@/store/breadcrumb";
 import { usePageHeader } from "@/store/pageHeader";
 import { useI18n } from "@/lib/i18n";
+import { isWindows } from "@/lib/platform";
+import { WindowControls } from "./WindowControls";
 
 const SECTION_ICON: Record<string, LucideIcon> = {
   dashboard: LayoutDashboard,
@@ -74,7 +76,12 @@ export function TopBar() {
     // interactive children (<button>s, crumbs with role="link") are excluded.
     <div
       data-tauri-drag-region="deep"
-      className="flex h-11 shrink-0 items-center gap-1 border-b border-border bg-surface-sunken pl-[80px] pr-2"
+      className={clsx(
+        "flex h-11 shrink-0 items-center gap-1 border-b border-border bg-surface-sunken",
+        // macOS: clear the traffic lights on the left. Windows: frameless, so
+        // no left inset; our own controls sit on the right (no right padding).
+        isWindows ? "pl-2 pr-0" : "pl-[80px] pr-2",
+      )}
     >
       <div className="flex shrink-0 items-center gap-0.5">
         <button onClick={() => navigate(-1)} title={t("nav.back")} className={navBtn}>
@@ -120,6 +127,9 @@ export function TopBar() {
         ref={(el) => setSlot(el)}
         className="flex shrink-0 items-center gap-2 pr-1"
       />
+
+      {/* Windows: app-drawn min/max/close (frameless window). */}
+      {isWindows && <WindowControls />}
     </div>
   );
 }
