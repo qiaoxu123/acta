@@ -11,7 +11,12 @@ const pool = new pgLib.Pool({
   max:      3,
 });
 
-const USER = "default"; // single-user; multi-user = token → user_id map
+const USER_PARAM = "default"; // 默认 user_id，可通过 ?user= 参数覆盖
+
+// ── 工具：从 URL 取 user_id ──
+function getUserId(url) {
+  return url.searchParams.get("user") || USER_PARAM;
+}
 
 // Ensure tables on start
 await pool.query(`
@@ -59,8 +64,10 @@ http.createServer(async (req, res) => {
   }
 
   try {
+    const user = getUserId(url);
+
     if (req.method === "GET" && path === "/snapshot") {
-      const r = await pool.query("SELECT data FROM sync_snapshots WHERE user_id=$1", [USER]);
+      const r = await pool.query("SELECT data FROM sync_snapshots WHERE user_id=$1", [user]);
       if (!r.rows.length) { res.writeHead(404).end("no snapshot yet"); return; }
       res.writeHead(200, { "content-type": "application/json" });
       res.end(JSON.stringify(r.rows[0].data));
@@ -71,7 +78,7 @@ http.createServer(async (req, res) => {
       await pool.query(
         `INSERT INTO sync_snapshots (user_id, data, updated_at) VALUES ($1, $2, now())
          ON CONFLICT (user_id) DO UPDATE SET data=$2, updated_at=now()`,
-        [USER, JSON.parse(body)],
+        [user, JSON.parse(body)],
       );
       json(res, 200, { ok: true });
 
